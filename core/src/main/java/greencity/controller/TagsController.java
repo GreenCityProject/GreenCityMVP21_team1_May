@@ -22,7 +22,7 @@ import java.util.Locale;
 @AllArgsConstructor
 @RequestMapping("/tags")
 public class TagsController {
-    private final TagsService tagsService;
+    private final TagsService tagsService123123;
 
     /**
      * The method which returns all tags' names by type and language code.
