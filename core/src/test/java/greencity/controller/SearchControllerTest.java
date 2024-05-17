@@ -28,18 +28,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WithMockUser(username = "user", roles = {"USER"})
 @ContextConfiguration(classes = {GreenCityApplication.class})
 class SearchControllerTest {
-    private static final String searchLink = "/search";
+    static final String searchLink = "/search";
+    static final Locale locale = Locale.ENGLISH;
     @Autowired
-    private MockMvc mockMvc;
-    private final Locale locale = Locale.ENGLISH;
+    MockMvc mockMvc;
     @MockBean
-    private SearchService searchService;
+    SearchService searchService;
     @MockBean
-    private LanguageService languageService;
+    LanguageService languageService;
     @MockBean
     ModelMapper modelMapper;
     @MockBean
-    private UserService userService;
+    UserService userService;
 
     @Test
     @DirtiesContext
