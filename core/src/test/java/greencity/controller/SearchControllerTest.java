@@ -67,7 +67,7 @@ class SearchControllerTest {
 
         when(languageService.findAllLanguageCodes()).thenReturn(List.of(locale.getLanguage()));
 
-        mockMvc.perform(get(STR."\{searchLink}/econews?page=\{pageNumber}&size=\{pageSize}&sort=asc")
+        mockMvc.perform(get(searchLink + "/econews?page=" + pageNumber + "&size" + pageSize + "&sort=asc")
                         .param("searchQuery", searchQuery)
                         .locale(locale))
                 .andExpect(status().isOk());
