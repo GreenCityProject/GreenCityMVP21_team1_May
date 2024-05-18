@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = {SearchController.class})
-@WithMockUser(username = "user", roles = {"USER"})
+@WithMockUser(username = "user")
 @ContextConfiguration(classes = {GreenCityApplication.class})
 class SearchControllerTest {
     static final String searchLink = "/search";
@@ -67,7 +67,7 @@ class SearchControllerTest {
 
         when(languageService.findAllLanguageCodes()).thenReturn(List.of(locale.getLanguage()));
 
-        mockMvc.perform(get(searchLink + "/econews?page=" + pageNumber + "&size" + pageSize + "&sort=asc")
+        mockMvc.perform(get(searchLink + "/econews?page=" + pageNumber + "&size=" + pageSize + "&sort=ASC")
                         .param("searchQuery", searchQuery)
                         .locale(locale))
                 .andExpect(status().isOk());
