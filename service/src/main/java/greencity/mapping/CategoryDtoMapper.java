@@ -11,6 +11,10 @@ public class CategoryDtoMapper extends AbstractConverter<CategoryDto, Category> 
     protected Category convert(CategoryDto categoryDto) {
         return Category.builder()
             .name(categoryDto.getName())
+                .nameUa(categoryDto.getNameUa())
+                .parentCategory(Category.builder()
+                        .id(categoryDto.getParentCategoryId())
+                        .build())
             .build();
     }
 }
