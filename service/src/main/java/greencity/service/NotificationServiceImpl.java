@@ -1,18 +1,23 @@
 package greencity.service;
 
 import greencity.constant.ErrorMessage;
-import greencity.dto.notifications.CreateNotification;
+import greencity.dto.notifications.CreateNotificationDto;
 import greencity.dto.notifications.NotificationDto;
 import greencity.entity.Notification;
+import greencity.entity.User;
 import greencity.enums.NotificationSections;
 import greencity.exception.exceptions.BadRequestException;
 import greencity.exception.exceptions.NotFoundException;
+import greencity.mapping.CreateNotificationDtoMapper;
 import greencity.mapping.NotificationDtoMapper;
 import greencity.repository.NotificationRepo;
 import greencity.repository.UserRepo;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 
+
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -22,6 +27,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final NotificationRepo notificationRepo;
     private final UserRepo userRepo;
     private final NotificationDtoMapper notificationMapper;
+    private final CreateNotificationDtoMapper createNotificationDtoMapper;
 
     @Override
     public List<NotificationDto> findAllForUser(Long userId) {
@@ -80,8 +86,22 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public NotificationDto save(CreateNotification createNotification) {
-        return null;
+    public NotificationDto save(CreateNotificationDto createNotification) {
+        Notification notification = createNotificationDtoMapper.convert(createNotification);
+
+        User user = userRepo.findById(createNotification.getUserId())
+                .orElseThrow(() -> new NotFoundException(ErrorMessage.USER_NOT_FOUND_BY_ID + createNotification.getUserId()));
+        User senderUser = createNotification.getSenderId() != null
+                ? userRepo.findById(createNotification.getSenderId())
+                .orElseThrow(() -> new NotFoundException(ErrorMessage.USER_NOT_FOUND_BY_ID + createNotification.getSenderId()))
+                : null;
+
+        notification.setUser(user);
+        notification.setSenderUser(senderUser);
+        notification.setIsRead(false);
+        notification.setCreatedAt(LocalDateTime.now());
+
+        return notificationMapper.convert(notificationRepo.save(notification));
     }
 
     @Override

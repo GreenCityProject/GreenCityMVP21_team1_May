@@ -1,6 +1,6 @@
 package greencity.service;
 
-import greencity.dto.notifications.CreateNotification;
+import greencity.dto.notifications.CreateNotificationDto;
 import greencity.dto.notifications.NotificationDto;
 
 import java.util.List;
@@ -16,7 +16,7 @@ public interface NotificationService {
 
     Long getAmountOfUnreadNotificationsByUserId(Long userId);
 
-    NotificationDto save(CreateNotification createNotification);
+    NotificationDto save(CreateNotificationDto createNotification);
 
     NotificationDto findById(Long id);
 
