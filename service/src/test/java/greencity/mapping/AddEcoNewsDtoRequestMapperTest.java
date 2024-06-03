@@ -1,41 +1,37 @@
 package greencity.mapping;
 
-import greencity.ModelUtils;
-import greencity.TestConst;
 import greencity.dto.econews.AddEcoNewsDtoRequest;
 import greencity.entity.EcoNews;
-import greencity.entity.EcoNewsComment;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Collections;
-import java.util.List;
+import java.time.ZonedDateTime;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static greencity.ModelUtils.getAddEcoNewsDtoRequest;
+import static org.junit.jupiter.api.Assertions.*;
 
-@ExtendWith(SpringExtension.class)
+@ExtendWith(MockitoExtension.class)
 class AddEcoNewsDtoRequestMapperTest {
 
     @InjectMocks
     private AddEcoNewsDtoRequestMapper mapper;
 
-    private EcoNews ecoNews = ModelUtils.getEcoNews();
-
     @Test
-    void convertTest() {
-        AddEcoNewsDtoRequest request = ModelUtils.getAddEcoNewsDtoRequest();
+    @DisplayName("Test convert from AddEcoNewsDtoRequest to EcoNews")
+    void convert() {
+        AddEcoNewsDtoRequest dto = getAddEcoNewsDtoRequest();
 
-        EcoNews actual = mapper.convert(request);
-        actual.setImagePath(TestConst.SITE);
-        actual.setId(1L);
-        actual.setCreationDate(ecoNews.getCreationDate());
-        actual.setTags(Collections.singletonList(ModelUtils.getTag()));
-        actual.setUsersLikedNews(Collections.emptySet());
-        actual.setUsersDislikedNews(Collections.emptySet());
-        actual.setEcoNewsComments(List.of(EcoNewsComment.builder().id(1L).text("test").build()));
+        EcoNews result = mapper.convert(dto);
 
-        assertEquals(ecoNews, actual);
+        assertNotNull(result);
+        assertEquals(dto.getSource(), result.getSource());
+        assertEquals(dto.getTitle(), result.getTitle());
+        assertEquals(dto.getText(), result.getText());
+        assertEquals(dto.getShortInfo(), result.getShortInfo());
+        assertNotNull(result.getCreationDate());
+        assertTrue(result.getCreationDate().isBefore(ZonedDateTime.now()) || result.getCreationDate().isEqual(ZonedDateTime.now()));
     }
 }

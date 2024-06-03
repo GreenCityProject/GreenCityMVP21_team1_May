@@ -2,10 +2,12 @@ package greencity;
 
 import greencity.constant.AppConstant;
 import greencity.dto.PageableAdvancedDto;
+import greencity.dto.category.CategoryDto;
 import greencity.dto.econews.*;
 import greencity.dto.econewscomment.*;
 import greencity.dto.habit.*;
 import greencity.dto.habitfact.*;
+import greencity.dto.habitstatuscalendar.HabitStatusCalendarVO;
 import greencity.dto.language.LanguageDTO;
 import greencity.dto.language.LanguageTranslationDTO;
 import greencity.dto.language.LanguageVO;
@@ -180,7 +182,7 @@ public class ModelUtils {
             List.of(TagTranslation.builder().name("Новини").language(Language.builder().code("ua").build()).build(),
                 TagTranslation.builder().name("News").language(Language.builder().code("en").build()).build()));
         return new EcoNews(1L, zonedDateTime, TestConst.SITE, "source", "shortInfo", getUser(),
-            "title", "text", List.of(EcoNewsComment.builder().id(1L).text("test").build()),
+            "title", "text", List.of(EcoNewsComment.builder().id(1L).text("test").user(getUser()).build()),
             Collections.singletonList(tag), Collections.emptySet(), Collections.emptySet());
     }
 
@@ -197,8 +199,32 @@ public class ModelUtils {
 
     public static HabitStatusCalendar getHabitStatusCalendar() {
         return HabitStatusCalendar.builder()
-            .enrollDate(LocalDate.now()).id(1L).build();
+            .enrollDate(LocalDate.now())
+                .id(1L)
+                .habitAssign(getHabitAssignSimple())
+                .build();
     }
+
+    public static HabitTranslation getHabitTranslation() {
+        Language language = getLanguage();
+        Habit habit = Habit.builder()
+                .id(1L)
+                .image("image.png")
+                .defaultDuration(30)
+                .complexity(2)
+                .tags(Set.of(getTag()))
+                .shoppingListItems(Set.of(getShoppingListItem()))
+                .build();
+        return HabitTranslation.builder()
+                .id(1L)
+                .name("Habit Name")
+                .description("Habit Description")
+                .habitItem("Habit Item")
+                .language(language)
+                .habit(habit)
+                .build();
+    }
+
 
     public static HabitAssign getHabitAssign() {
         return HabitAssign.builder()
@@ -227,9 +253,25 @@ public class ModelUtils {
             .build();
     }
 
+    public static HabitAssign getHabitAssignSimple() {
+        return HabitAssign.builder()
+                .id(1L)
+                .status(HabitAssignStatus.ACQUIRED)
+                .createDate(ZonedDateTime.now())
+                .userShoppingListItems(new ArrayList<>())
+                .workingDays(0)
+                .duration(0)
+                .habitStreak(0)
+                .lastEnrollmentDate(ZonedDateTime.now())
+                .build();
+    }
+
     public static HabitStatistic getHabitStatistic() {
         return HabitStatistic.builder()
-            .id(1L).habitRate(HabitRate.GOOD).createDate(ZonedDateTime.now())
+            .id(1L)
+            .habitRate(HabitRate.GOOD)
+            .createDate(ZonedDateTime.now())
+            .habitAssign(getHabitAssignSimple())
             .amountOfItems(10).build();
     }
 
@@ -349,7 +391,7 @@ public class ModelUtils {
 
     public static AddEcoNewsDtoRequest getAddEcoNewsDtoRequest() {
         return new AddEcoNewsDtoRequest("title", "text",
-            Collections.singletonList("News"), "source", null, "shortInfo");
+                Collections.singletonList("News"), "source", null, "shortInfo");
     }
 
     public static AddEcoNewsDtoResponse getAddEcoNewsDtoResponse() {
@@ -377,6 +419,14 @@ public class ModelUtils {
         return new URL(TestConst.SITE);
     }
 
+    public static Habit getCustomHabit() {
+        return Habit.builder()
+                .image("imagePath")
+                .complexity(2)
+                .defaultDuration(7)
+                .isCustomHabit(true)
+                .build();
+    }
     public static EcoNewsAuthorDto getEcoNewsAuthorDto() {
         return new EcoNewsAuthorDto(1L, TestConst.NAME);
     }
@@ -432,9 +482,11 @@ public class ModelUtils {
             .id(1L)
             .text("text")
             .createdDate(LocalDateTime.now())
-            .modifiedDate(LocalDateTime.now())
+            .modifiedDate(LocalDateTime.now().plusHours(5))
             .user(getUser())
+            .usersLiked(new HashSet<>())
             .ecoNews(getEcoNews())
+            .comments(new ArrayList<>())
             .build();
     }
 
@@ -667,5 +719,86 @@ public class ModelUtils {
             .text("item")
             .status(ShoppingListItemStatus.INPROGRESS)
             .build();
+    }
+
+    public static CategoryDto getCategoryDtoWithUaNameAndWithParentCategory(){
+        return CategoryDto.builder()
+                .name("Test Category")
+                .nameUa("Тестова Категорія")
+                .parentCategoryId(5L)
+                .build();
+    }
+
+    public static Category getCategoryWithNameId(){
+        return Category.builder()
+                .id(1L)
+                .name("Test Category")
+                //.nameUa("Тестова Категорія")
+                //.parentCategoryId(5L)
+                .build();
+    }
+
+    public static HabitVO getHabitV0(){
+        return HabitVO.builder()
+                .id(3L)
+                .image("image_path")
+                .complexity(3)
+                .build();
+    }
+
+    public static HabitFactVO getHabitFactV0() {
+        return HabitFactVO.builder()
+                .id(1L)
+                .translations(List.of(ModelUtils.getFactTranslationVO()))
+                .habit(ModelUtils.getHabitV0())
+                .build();
+    }
+
+    public static Habit getHabit(){
+        return Habit.builder()
+                .id(2L)
+                .image("image_path")
+                .complexity(3)
+                .defaultDuration(7)
+                .habitTranslations(List.of(ModelUtils.getHabitTranslation()))
+                .build();
+    }
+
+    public static HabitStatusCalendarVO getHabitStatusCalendarVO(){
+        return HabitStatusCalendarVO.builder()
+                .id(4L)
+                .enrollDate(LocalDate.now())
+                .habitAssignVO(getHabitAssignVO())
+                .build();
+    }
+
+    public static HabitAssignVO getHabitAssignVO(){
+
+        return HabitAssignVO.builder()
+                .id(1L)
+                .status(HabitAssignStatus.ACTIVE)
+                .createDateTime(ZonedDateTime.now())
+                .habitVO(getHabitV0())
+                .userVO(getUserVO())
+                .duration(7)
+                .habitStreak(5)
+                .workingDays(6)
+                .lastEnrollmentDate(ZonedDateTime.now())
+                .build();
+    }
+
+    public static HabitFactTranslation getHabitFactTranslation() {
+        return HabitFactTranslation.builder()
+                .factOfDayStatus(FactOfDayStatus.CURRENT)
+                .language(getLanguage())
+                .habitFact(getHabitFact())
+                .build();
+    }
+
+    public static HabitFact getHabitFact(){
+        return HabitFact.builder()
+                .id(4L)
+                .habit(getHabit())
+                .build();
     }
 }

@@ -18,10 +18,7 @@ import greencity.entity.*;
 import greencity.entity.localization.TagTranslation;
 import greencity.enums.Role;
 import greencity.enums.TagType;
-import greencity.exception.exceptions.BadRequestException;
-import greencity.exception.exceptions.NotFoundException;
-import greencity.exception.exceptions.NotSavedException;
-import greencity.exception.exceptions.UnsupportedSortException;
+import greencity.exception.exceptions.*;
 import greencity.filters.EcoNewsSpecification;
 import greencity.filters.SearchCriteria;
 import greencity.repository.EcoNewsRepo;
@@ -317,7 +314,7 @@ public class EcoNewsServiceImpl implements EcoNewsService {
     public void delete(Long id, UserVO user) {
         EcoNewsVO ecoNewsVO = findById(id);
         if (user.getRole() != Role.ROLE_ADMIN && !user.getId().equals(ecoNewsVO.getAuthor().getId())) {
-            throw new BadRequestException(ErrorMessage.USER_HAS_NO_PERMISSION);
+            throw new UserHasNoPermissionToAccessException(ErrorMessage.USER_HAS_NO_PERMISSION);
         }
         String accessToken = httpServletRequest.getHeader(AUTHORIZATION);
         CompletableFuture.runAsync(
@@ -488,7 +485,7 @@ public class EcoNewsServiceImpl implements EcoNewsService {
     public EcoNewsGenericDto update(UpdateEcoNewsDto updateEcoNewsDto, MultipartFile image, UserVO user) {
         EcoNews toUpdate = modelMapper.map(findById(updateEcoNewsDto.getId()), EcoNews.class);
         if (user.getRole() != Role.ROLE_ADMIN && !user.getId().equals(toUpdate.getAuthor().getId())) {
-            throw new BadRequestException(ErrorMessage.USER_HAS_NO_PERMISSION);
+            throw new UserHasNoPermissionToAccessException(ErrorMessage.USER_HAS_NO_PERMISSION);
         }
         enhanceWithNewData(toUpdate, updateEcoNewsDto, image);
         ecoNewsRepo.save(toUpdate);

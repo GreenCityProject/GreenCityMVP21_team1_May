@@ -14,7 +14,15 @@ public final class SwaggerExampleModel {
         + "\t</ul>\n"
         + "\t<pre>\n";
 
-    private static final String EXAMPLE =
+    private static final String EXAMPLE_FOR_ADD_ECO_NEWS =
+            "  \"tags\": [\n"
+            + "    \"string\"\n"
+            + "  ],\n"
+            + "  \"text\": \"string\",\n"
+            + "  \"title\": \"string\",\n"
+            + "  \"source\": \"string\"\n";
+
+    private static final String EXAMPLE_FOR_UPDATE_ECO_NEWS =
         "  \"image\": \"string\",\n"
             + "  \"source\": \"https://example.org/\",\n"
             + "  \"shortInfo\": \"string\",\n"
@@ -45,7 +53,7 @@ public final class SwaggerExampleModel {
             + IMAGE_DESCRIPTION
             + BEFORE_EXAMPLE
             + "{\n"
-            + EXAMPLE
+            + EXAMPLE_FOR_ADD_ECO_NEWS
             + "}\n"
             + AFTER_EXAMPLE;
     public static final String UPDATE_ECO_NEWS =
@@ -54,7 +62,7 @@ public final class SwaggerExampleModel {
             + BEFORE_EXAMPLE
             + "{\n"
             + "  \"id\": 0,\n"
-            + EXAMPLE
+            + EXAMPLE_FOR_UPDATE_ECO_NEWS
             + "}\n"
             + AFTER_EXAMPLE;
     public static final String ADD_EVENT = BEFORE_EXAMPLE
