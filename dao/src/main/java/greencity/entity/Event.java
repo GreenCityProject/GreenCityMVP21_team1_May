@@ -27,17 +27,17 @@ public class Event {
     private Long id;
 
     @CreationTimestamp(source = SourceType.DB)
-    @Column(name = "timestamp"/*, columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP"*/)
+    @Column(name = "timestamp")
     private LocalDateTime timestamp;
 
     @NotNull(message = "Missed event title")
     @Size(min = 20, max = 70, message = "Event title must be up to 70 symbols")
     @Column(name = "title")
-    private String title; // EXCLUDE SERVICE SYMBOLS ???
+    private String title; // EXCLUDE SERVICE SYMBOLS ??? YES!!!
 
     @Size(min = 1, message = "Missed event date, time or location")
     @Column(name = "event_date_location_id")
-    @OneToMany(mappedBy = "event", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "event", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<EventDateLocation> dates = new ArrayList<>();
 
     @NotNull
@@ -48,7 +48,7 @@ public class Event {
     @NotNull(message = "Event description must be less than 63 206 symbols")
     @Size(min = 20, max = 63206, message = "Missed event date, time or location")
     @Column(name = "description")
-    private String description; //less than 63 206 symbols. EXCLUDE SERVICE SYMBOLS ???
+    private String description; //less than 63 206 symbols. EXCLUDE SERVICE SYMBOLS ??? YES!!!
 
     @Column(name = "is_open")
     private Boolean isOpen = true;
@@ -61,16 +61,3 @@ public class Event {
     private List<AdditionalImage> additionalImages = new ArrayList<>(); //up to 10MB and have JPG or PNG format.
 
 }
-/**
- * {    "title":"ас події, мету збору тощо. Ви можете повернутися т",
- * "description":"<p><span style=\"background-color: rgb(247, 249, 250); color: rgb(68, 78, 85);\">ас події, мету збору тощо. Ви можете повернутися тас події, мету збору тощо. Ви можете повернутися тас події, мету збору тощо. Ви можете повернутися т</span></p>",
- * "open":true,
- * "datesLocations":
- * [{
- * "startDate":"2024-06-02T14:00:40+03:00",
- * "finishDate":"2024-06-02T23:59:40+03:00",
- * "coordinates":{"latitude":50.3741511,"longitude":30.37375590000001}
- * }],
- * "tags":["Social"]
- * }
- **/

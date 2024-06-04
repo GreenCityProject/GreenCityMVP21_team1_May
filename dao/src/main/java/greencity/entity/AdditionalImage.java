@@ -24,6 +24,6 @@ public class AdditionalImage {
     private String data;
 
     @ManyToOne
-    @JoinColumn(name = "event_id", nullable = false)
+    @JoinColumn(name = "event_id")
     private Event event;
 }

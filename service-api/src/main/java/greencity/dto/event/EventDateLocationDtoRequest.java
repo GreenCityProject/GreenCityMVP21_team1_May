@@ -6,16 +6,16 @@ import java.time.LocalDateTime;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 @Getter
 @Setter
 @EqualsAndHashCode
-public class EventDateLocationDtoResponse {
-    private Long id;
-    private Long eventId;
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
-    private String onlineLink;
-    private AddressDtoResponse address;
-}
+public class EventDateLocationDtoRequest {
 
+    private LocalDateTime startTime;
+
+    private LocalDateTime endTime;
+
+    private String onlineLink;
+
+    private AddressDtoRequest address;
+}

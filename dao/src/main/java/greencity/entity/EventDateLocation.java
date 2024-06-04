@@ -23,15 +23,12 @@ public class EventDateLocation {
     @Column(nullable = false)
     private Long id;
 
-    @NotNull
-    @OneToOne(mappedBy = "eventDateLocation")
-//    @JoinColumn(name = "address_id", referencedColumnName = "event_date_location_id", nullable = false)
-    @PrimaryKeyJoinColumn
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "address_id")
     private Address address;
 
-    @NotNull
     @ManyToOne
-    @JoinColumn(name = "event_id", nullable = false)
+    @JoinColumn(name = "event_id")
     private Event event;
 
     @NotNull
@@ -52,5 +49,4 @@ public class EventDateLocation {
             message = "Invalid URL for event ink"
     )
     private String onlineLink;
-
 }

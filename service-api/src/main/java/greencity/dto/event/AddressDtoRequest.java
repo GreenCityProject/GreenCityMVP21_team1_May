@@ -1,26 +1,14 @@
-package greencity.entity;
+package greencity.dto.event;
 
-import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-@Entity
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
-@Builder
-@Table(name = "addresses")
 @EqualsAndHashCode
-@ToString
-public class Address {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @OneToOne(mappedBy = "address")
-    private EventDateLocation eventDateLocation;
-
+public class AddressDtoRequest {
     @NotNull
     private Double latitude;
 
@@ -28,25 +16,14 @@ public class Address {
     private Double longitude;
 
     private String countryEn;
-
     private String countryUa;
-
     private String regionEn;
-
     private String regionUa;
-
     private String cityEn;
-
     private String cityUa;
-
     private String streetEn;
-
     private String streetUa;
-
     private String houseNumber;
-
     private String formattedAddressEn;
-
     private String formattedAddressUa;
-
 }
