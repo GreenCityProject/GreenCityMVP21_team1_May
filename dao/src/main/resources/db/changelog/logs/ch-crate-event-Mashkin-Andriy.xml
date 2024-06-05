@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet author="Andriy Mashkin" id="create-table-events">
+        <createTable tableName="events">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="timestamp" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="title" type="varchar(70)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_open" type="boolean" defaultValueBoolean="true"/>
+            <column name="title_image" type="varchar"/>
+            <column name="organizer_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="Andriy Mashkin" id="create-table-event_date_locations">
+        <createTable tableName="event_date_locations">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="start_time" type="timestamp"/>
+            <column name="end_time" type="timestamp"/>
+            <column name="online_link" type="varchar"/>
+            <column name="address_id" type="BIGINT"/>
+            <column name="event_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="Andriy Mashkin" id="create-table-addresses">
+        <createTable tableName="addresses">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="latitude" type="decimal(8, 6)"/>
+            <column name="longitude" type="decimal(9, 6)"/>
+            <column name="country_en" type="varchar(70)"/>
+            <column name="country_ua" type="varchar(70)"/>
+            <column name="region_en" type="varchar(70)"/>
+            <column name="region_ua" type="varchar(70)"/>
+            <column name="city_en" type="varchar(70)"/>
+            <column name="city_ua" type="varchar(70)"/>
+            <column name="street_en" type="varchar(70)"/>
+            <column name="street_ua" type="varchar(70)"/>
+            <column name="house_number" type="varchar(10)"/>
+            <column name="formatted_address_en" type="varchar(250)"/>
+            <column name="formatted_address_ua" type="varchar(250)"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="Andriy Mashkin" id="create-table-additional_images">
+        <createTable tableName="additional_images">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="data" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="event_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="Andriy Mashkin" id="add-foreign-key-events-organizer">
+        <addForeignKeyConstraint baseTableName="events"
+                                 baseColumnNames="organizer_id"
+                                 referencedTableName="users"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_events_organizer"/>
+    </changeSet>
+
+    <changeSet author="Andriy Mashkin" id="add-foreign-key-additional_images-event">
+        <addForeignKeyConstraint baseTableName="additional_images"
+                                 baseColumnNames="event_id"
+                                 referencedTableName="events"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_additional_images_event"/>
+    </changeSet>
+
+    <changeSet author="Andriy Mashkin" id="add-foreign-key-event_date_locations-addresses">
+        <addForeignKeyConstraint baseTableName="event_date_locations"
+                                 baseColumnNames="address_id"
+                                 referencedTableName="addresses"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_event_date_locations_addresses"/>
+    </changeSet>
+
+    <changeSet author="Andriy Mashkin" id="add-foreign-key-event_date_locations-event">
+        <addForeignKeyConstraint baseTableName="event_date_locations"
+                                 baseColumnNames="event_id"
+                                 referencedTableName="events"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_event_date_locations_event"/>
+    </changeSet>
+</databaseChangeLog>

@@ -31,11 +31,11 @@ public class Event {
     private LocalDateTime timestamp;
 
     @NotNull(message = "Missed event title")
-    @Size(min = 20, max = 70, message = "Event title must be up to 70 symbols")
+    @Size(min = 20, max = 70, message = "Event title must be from 20 to 70 symbols")
     @Column(name = "title")
     private String title; // EXCLUDE SERVICE SYMBOLS ??? YES!!!
 
-    @Size(min = 1, message = "Missed event date, time or location")
+    @Size(min = 1, max = 7, message = "Must add from 1 to 7 sets of date, time and location parameters")
     @Column(name = "event_date_location_id")
     @OneToMany(mappedBy = "event", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<EventDateLocation> dates = new ArrayList<>();
