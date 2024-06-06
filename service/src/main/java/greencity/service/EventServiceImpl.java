@@ -1,9 +1,11 @@
 package greencity.service;
 
+import greencity.client.RestClient;
 import greencity.dto.event.AdditionalImageForEventDtoRequest;
 import greencity.dto.event.EventDateLocationDtoRequest;
 import greencity.dto.event.EventDtoCreateResponse;
 import greencity.dto.event.EventDtoRequest;
+import greencity.dto.user.NotificationDto;
 import greencity.entity.*;
 import greencity.repository.EventRepo;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,8 @@ import java.util.List;
 public class EventServiceImpl implements EventService {
     private final EventRepo eventRepo;
     private final UserService userService;
+    private final RestClient restClient;
+
     ModelMapper modelMapper = new ModelMapper();
 
 
@@ -59,6 +63,13 @@ public class EventServiceImpl implements EventService {
         }
         event.setAdditionalImages(additionalImageList);
         event = eventRepo.save(event);
+
+        NotificationDto notificationDto = NotificationDto.builder()
+                .body(event.toString())
+                .title("Event \"" + event.getTitle().substring(0, 15) + "...\" created")
+                .build();
+
+        restClient.sendNotificationToUser(notificationDto, organiser.getEmail());
 
         return modelMapper.map(event, EventDtoCreateResponse.class);
     }

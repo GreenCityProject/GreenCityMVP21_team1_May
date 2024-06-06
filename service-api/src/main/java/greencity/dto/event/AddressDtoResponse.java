@@ -12,12 +12,8 @@ import java.math.BigDecimal;
 @Setter
 @EqualsAndHashCode
 public class AddressDtoResponse {
-    @NotNull
     private BigDecimal latitude;
-
-    @NotNull
     private BigDecimal longitude;
-
     private String countryEn;
     private String countryUa;
     private String regionEn;

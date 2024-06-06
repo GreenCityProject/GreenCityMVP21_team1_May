@@ -18,4 +18,3 @@ public class EventDateLocationDtoResponse {
     private String onlineLink;
     private AddressDtoResponse address;
 }
-

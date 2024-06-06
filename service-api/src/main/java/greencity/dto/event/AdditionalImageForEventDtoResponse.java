@@ -1,6 +1,5 @@
 package greencity.dto.event;
 
-import jakarta.validation.constraints.NotEmpty;
 import lombok.*;
 
 @AllArgsConstructor
@@ -10,7 +9,5 @@ import lombok.*;
 @Setter
 @EqualsAndHashCode
 public class AdditionalImageForEventDtoResponse {
-
-    @NotEmpty
     private String data;
 }

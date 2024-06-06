@@ -10,12 +10,8 @@ import java.time.LocalDateTime;
 @Setter
 @EqualsAndHashCode
 public class EventDateLocationDtoRequest {
-
     private LocalDateTime startTime;
-
     private LocalDateTime endTime;
-
     private String onlineLink;
-
     private AddressDtoRequest address;
 }

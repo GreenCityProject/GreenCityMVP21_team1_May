@@ -15,8 +15,8 @@ import java.time.LocalDateTime;
 @Setter
 @Builder
 @Table(name = "event_date_locations")
-@EqualsAndHashCode
-@ToString
+@EqualsAndHashCode//(exclude = {"event"})
+@ToString(exclude = {"event"})
 public class EventDateLocation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

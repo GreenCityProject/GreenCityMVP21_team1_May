@@ -1,5 +1,6 @@
 package greencity.entity;
 
+import greencity.annotations.ValidStringLength;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -18,8 +19,8 @@ import java.util.List;
 @Setter
 @Builder
 @Table(name = "events")
-@EqualsAndHashCode
-@ToString
+@EqualsAndHashCode//(exclude = {"dates","organizer","additionalImages"})
+@ToString(exclude = {"dates", "organizer", "additionalImages"})
 public class Event {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,9 +32,9 @@ public class Event {
     private LocalDateTime timestamp;
 
     @NotNull(message = "Missed event title")
-    @Size(min = 20, max = 70, message = "Event title must be from 20 to 70 symbols")
+    @ValidStringLength(min = 20, max = 70, excludeHtml = true, message = "Event title must be from 20 to 70 symbols")
     @Column(name = "title")
-    private String title; // EXCLUDE SERVICE SYMBOLS ??? YES!!!
+    private String title;
 
     @Size(min = 1, max = 7, message = "Must add from 1 to 7 sets of date, time and location parameters")
     @Column(name = "event_date_location_id")
@@ -46,9 +47,9 @@ public class Event {
     private User organizer;
 
     @NotNull(message = "Event description must be less than 63 206 symbols")
-    @Size(min = 20, max = 63206, message = "Missed event date, time or location")
+    @ValidStringLength(min = 20, max = 63206, excludeHtml = true, message = "Event description must be from 20 to 63 206 symbols")
     @Column(name = "description")
-    private String description; //less than 63 206 symbols. EXCLUDE SERVICE SYMBOLS ??? YES!!!
+    private String description;
 
     @Column(name = "is_open")
     private Boolean isOpen = true;
@@ -59,5 +60,4 @@ public class Event {
     @Column(name = "additional_images_id")
     @OneToMany(mappedBy = "event", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AdditionalImage> additionalImages = new ArrayList<>(); //up to 10MB and have JPG or PNG format.
-
 }
