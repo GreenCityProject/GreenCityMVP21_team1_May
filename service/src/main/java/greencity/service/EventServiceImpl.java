@@ -52,9 +52,15 @@ public class EventServiceImpl implements EventService {
                 .isOpen(dto.getIsOpen())
                 .organizer(User.builder()
                         .id(organiser.getId())
+                        .name(organiser.getName())
+                        .rating(organiser.getRating())
+                        .email(organiser.getEmail())
                         .build())
-                .additionalImages(additionalImageList)
                 .build();
+        for(AdditionalImage a: additionalImageList){
+            a.setEvent(event);
+        }
+        event.setAdditionalImages(additionalImageList);
 
         List<EventDateLocation> eventDateLocationList = new ArrayList<>();
         for (EventDateLocationDtoRequest e : dto.getDates()) {
@@ -69,7 +75,7 @@ public class EventServiceImpl implements EventService {
         event.setDates(eventDateLocationList);
         event = eventRepo.save(event);
 
-        restClient.sendNotificationToUser(prepareNotificationFromEvent(event), organiser.getEmail());
+//        restClient.sendNotificationToUser(prepareNotificationFromEvent(event), organiser.getEmail());
 
         return modelMapper.map(event, EventCreateDtoResponse.class);
     }
