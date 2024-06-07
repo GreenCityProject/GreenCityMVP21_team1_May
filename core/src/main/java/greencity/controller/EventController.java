@@ -23,8 +23,4 @@ public class EventController {
         return ResponseEntity.status(HttpStatus.CREATED).body(eventService.create(dto, principal));
     }
 
-    @GetMapping("/get/{id}")
-    public ResponseEntity<EventDtoCreateResponse> getEventById(@PathVariable(value = "id") Long id) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(eventService.getBtId(id));
-    }
 }

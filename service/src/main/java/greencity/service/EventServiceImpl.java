@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,9 +24,7 @@ public class EventServiceImpl implements EventService {
     private final EventRepo eventRepo;
     private final UserService userService;
     private final RestClient restClient;
-
     ModelMapper modelMapper = new ModelMapper();
-
 
     @Override
     public EventDtoCreateResponse create(EventDtoRequest dto, String principal) {
@@ -64,20 +63,59 @@ public class EventServiceImpl implements EventService {
         event.setAdditionalImages(additionalImageList);
         event = eventRepo.save(event);
 
-        NotificationDto notificationDto = NotificationDto.builder()
-                .body(event.toString())
-                .title("Event \"" + event.getTitle().substring(0, 15) + "...\" created")
-                .build();
+        NotificationDto notificationDto = prepareNotificationFromEvent(event);
 
         restClient.sendNotificationToUser(notificationDto, organiser.getEmail());
 
         return modelMapper.map(event, EventDtoCreateResponse.class);
     }
 
-    @Override
-    public EventDtoCreateResponse getBtId(Long id) {
-        var eventOptional = eventRepo.findById(id);
-        var event = eventOptional.orElseThrow();
-        return modelMapper.map(event, EventDtoCreateResponse.class);
+    private NotificationDto prepareNotificationFromEvent(Event event) {
+        String datesTable = "<table>" +
+                "<thead>" +
+                "<tr>" +
+                "<th>Start Time</th>" +
+                "<th>End Time</th>" +
+                "<th>Address</th>" +
+                "<th>Online Link</th>" +
+                "</tr>" +
+                "</thead>" +
+                "<tbody>" +
+                event.getDates().stream()
+                        .map(eventDate -> String.format("<tr>" +
+                                        "<td>%s</td>" +
+                                        "<td>%s</td>" +
+                                        "<td>%s</td>" +
+                                        "<td><a href=\"%s\">Link</a></td>" +
+                                        "</tr>",
+                                eventDate.getStartTime(),
+                                eventDate.getEndTime(),
+                                eventDate.getAddress().getFormattedAddressUa(),
+                                eventDate.getOnlineLink()))
+                        .collect(Collectors.joining()) +
+                "</tbody></table>";
+
+        String emailContent = String.format("<html>" +
+                        "<head>" +
+                        "<style>" +
+                        "table { width: 100%%; border-collapse: collapse; }" +
+                        "th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }" +
+                        "th { background-color: #f2f2f2; }" +
+                        "</style>" +
+                        "</head>" +
+                        "<body>" +
+                        "<h1>%s</h1>" +
+                        "<p>%s</p>" +
+                        "%s" +
+                        "</body>" +
+                        "</html>",
+                event.getTitle(),
+                event.getDescription(),
+                datesTable);
+
+        return NotificationDto.builder()
+                .body(emailContent)
+                .title(String.format("Event \"%s...\" created", event.getTitle().substring(0, 15)))
+                .build();
     }
 }
