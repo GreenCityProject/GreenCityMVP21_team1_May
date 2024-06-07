@@ -20,7 +20,7 @@ public interface NotificationService {
 
     NotificationDto findById(Long id);
 
-    void markAllAsRead(Long userId);
+    List<NotificationDto> markAllAsRead(Long userId);
 
-    void markAsRead(Long notificationId);
+    NotificationDto markAsRead(Long notificationId);
 }

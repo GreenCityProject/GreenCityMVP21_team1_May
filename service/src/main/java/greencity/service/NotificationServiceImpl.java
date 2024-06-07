@@ -112,7 +112,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void markAllAsRead(Long userId) {
+    public List<NotificationDto> markAllAsRead(Long userId) {
         List<Notification> notifications = notificationRepo.findAllUnreadForUser(userId);
         if (notifications.isEmpty()) {
             throw new NotFoundException("User with id " + userId + " does not have any unread notifications");
@@ -121,19 +121,19 @@ public class NotificationServiceImpl implements NotificationService {
             notification.setIsRead(true);
             notificationRepo.save(notification);
         });
+        return notifications.stream()
+                .map(notificationMapper::convert)
+                .toList();
     }
 
-    @Override
-    public void markAsRead(Long notificationId) {
-        notificationRepo.findById(notificationId)
-                .ifPresentOrElse(
-                        notification -> {
-                            notification.setIsRead(true);
-                            notificationRepo.save(notification);
-                        },
-                        () -> {
-                            throw new NotFoundException("Notification with id " + notificationId + " not found");
-                        }
-                );
+        @Override
+    public NotificationDto markAsRead(Long notificationId) {
+        return notificationRepo.findById(notificationId)
+                .map(notification -> {
+                    notification.setIsRead(true);
+                    Notification savedNotification = notificationRepo.save(notification);
+                    return notificationMapper.convert(savedNotification);
+                })
+                .orElseThrow(() -> new NotFoundException("Notification with id " + notificationId + " not found"));
     }
 }
