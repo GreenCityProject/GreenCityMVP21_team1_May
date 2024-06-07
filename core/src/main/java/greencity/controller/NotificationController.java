@@ -23,6 +23,17 @@ import java.util.List;
 public class NotificationController {
     private final NotificationService notificationService;
 
+    @Operation(summary = "Read notification by id.")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
+            @ApiResponse(responseCode = "403", description = HttpStatuses.FORBIDDEN),
+            @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
+    })
+    @GetMapping("/{notificationId}")
+    public ResponseEntity<NotificationDto> readNotificationById(@PathVariable Long notificationId) {
+        return ResponseEntity.ok().body(notificationService.findById(notificationId));
+    }
+
     @Operation(summary = "Get three last notifications for user.")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = HttpStatuses.OK),
             @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
@@ -40,7 +51,7 @@ public class NotificationController {
             @ApiResponse(responseCode = "403", description = HttpStatuses.FORBIDDEN),
             @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
     })
-    @GetMapping("/{userId}")
+    @GetMapping("/user/{userId}")
     public ResponseEntity<List<NotificationDto>> getAllNotificationsForUser(@PathVariable Long userId) {
         return ResponseEntity.ok().body(notificationService.findAllForUser(userId));
     }
@@ -88,5 +99,28 @@ public class NotificationController {
     @PostMapping("/create")
     public ResponseEntity<NotificationDto> createNotification(@RequestBody @Valid CreateNotificationDto createNotification) {
         return ResponseEntity.status(HttpStatus.CREATED).body(notificationService.save(createNotification));
+    }
+
+    @Operation(summary = "Mark all notifications as read.")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
+            @ApiResponse(responseCode = "403", description = HttpStatuses.FORBIDDEN),
+            @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
+    })
+    @PatchMapping("/markAllAsRead/{userId}")
+    public ResponseEntity<List<NotificationDto>> markAllAsRead(@PathVariable Long userId) {
+        return ResponseEntity.status(HttpStatus.OK).body(notificationService.markAllAsRead(userId));
+    }
+
+    @Operation(summary = "Mark notification as read.")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+            @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST),
+            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
+            @ApiResponse(responseCode = "403", description = HttpStatuses.FORBIDDEN),
+            @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
+    })
+    @PatchMapping("/markAsRead/{notificationId}")
+    public ResponseEntity<NotificationDto> markAsRead(@PathVariable Long notificationId) {
+        return ResponseEntity.status(HttpStatus.OK).body(notificationService.markAsRead(notificationId));
     }
 }
