@@ -1,8 +1,12 @@
 package greencity.service;
 
-import greencity.dto.event.EventDtoCreateResponse;
-import greencity.dto.event.EventDtoRequest;
+import greencity.dto.event.EventCreateDtoResponse;
+import greencity.dto.event.EventCreateDtoRequest;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface EventService {
-    EventDtoCreateResponse create(EventDtoRequest dto, String principal);
+
+    EventCreateDtoResponse create(EventCreateDtoRequest dto,
+                                  MultipartFile[] images,
+                                  String principal);
 }

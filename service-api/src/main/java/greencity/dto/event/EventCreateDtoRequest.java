@@ -10,11 +10,11 @@ import java.util.List;
 @Getter
 @Setter
 @EqualsAndHashCode
-public class EventDtoRequest {
+public class EventCreateDtoRequest {
     private String title;
     private List<EventDateLocationDtoRequest> dates = new ArrayList<>();
     private String description;
     private Boolean isOpen;
-    private String titleImage;
-    private List<AdditionalImageForEventDtoRequest> additionalImages = new ArrayList<>();
+//    private String titleImage;
+//    private List<AdditionalImageForEventDtoRequest> additionalImages = new ArrayList<>();
 }

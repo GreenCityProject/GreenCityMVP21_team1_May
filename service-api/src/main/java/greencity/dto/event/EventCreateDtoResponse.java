@@ -12,7 +12,7 @@ import java.util.List;
 @Setter
 @Builder
 @EqualsAndHashCode
-public class EventDtoCreateResponse {
+public class EventCreateDtoResponse {
     private Long id;
     private LocalDateTime timestamp;
     private String title;

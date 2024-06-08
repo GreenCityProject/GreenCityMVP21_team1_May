@@ -54,6 +54,7 @@ public class Event {
     @Column(name = "is_open")
     private Boolean isOpen = true;
 
+    @NotNull
     @Column(name = "title_image")
     private String titleImage = "default image"; //up to 10MB and have JPG or PNG format.
 
