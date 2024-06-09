@@ -252,9 +252,7 @@ public class ModelUtils {
     }
 
     public static ObjectMapper getObjectMapper() {
-        var mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        return mapper;
+        return new ObjectMapper();
     }
 
     public static HabitAssign getHabitAssign() {
