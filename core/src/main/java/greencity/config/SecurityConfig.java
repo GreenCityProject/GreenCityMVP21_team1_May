@@ -284,6 +284,9 @@ public class SecurityConfig {
                                 "/facts/{factId}",
                                 "/comments")
                         .hasAnyRole(ADMIN)
+                        .requestMatchers(HttpMethod.DELETE,
+                                "/notifications/{notificationId}")
+                        .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)
                         .anyRequest().hasAnyRole(ADMIN))
                 .logout(logout -> logout.logoutUrl("/logout")
                         .logoutRequestMatcher(new AntPathRequestMatcher("/management/logout", "GET"))
