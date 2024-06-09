@@ -1,12 +1,19 @@
 package greencity.service;
 
 import greencity.client.RestClient;
-import greencity.dto.event.EventCreateDtoRequest;
-import greencity.dto.event.EventCreateDtoResponse;
-import greencity.dto.event.EventDateLocationDtoRequest;
+import greencity.constant.ErrorMessage;
+import greencity.dto.event.*;
 import greencity.dto.user.NotificationDto;
+import greencity.dto.user.UserVO;
 import greencity.entity.*;
+import greencity.enums.Role;
+import greencity.exception.exceptions.BadRequestException;
+import greencity.exception.exceptions.NotFoundException;
+import greencity.repository.AdditionalImageRepo;
+import greencity.repository.AddressRepo;
+import greencity.repository.EventDateLocationRepo;
 import greencity.repository.EventRepo;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -19,6 +26,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,6 +34,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public class EventServiceImpl implements EventService {
     private final EventRepo eventRepo;
+    private final EventDateLocationRepo eventDateLocationRepo;
+    private final AdditionalImageRepo additionalImageRepo;
+    private final AddressRepo addressRepo;
     private final UserService userService;
     private final RestClient restClient;
     private final FileService fileService;
@@ -68,6 +79,62 @@ public class EventServiceImpl implements EventService {
         event = eventRepo.save(event);
 
         restClient.sendNotificationToUser(prepareNotificationFromEvent(event), organiser.getEmail());
+
+        return modelMapper.map(event, EventCreateDtoResponse.class);
+    }
+
+    @Override
+    public List<EventCreateDtoResponse> getAll() {
+        List<Event> events = this.eventRepo.findAll();
+        return events.stream()
+                .map(e -> modelMapper.map(e, EventCreateDtoResponse.class))
+                .toList();
+    }
+
+    @Override
+    public EventCreateDtoResponse findEventById(Long id) {
+        Optional<Event> event = eventRepo.findById(id);
+        if(event.isPresent()) {
+            return modelMapper.map(event.get(), EventCreateDtoResponse.class);
+        }
+        else throw new NotFoundException(ErrorMessage.EVENT_NOT_FOUND_BY_ID + id);
+    }
+
+    @Override
+    @Transactional
+    public EventCreateDtoResponse update(EventUpdateDtoRequest eventUpdate, MultipartFile[] images, UserVO user){
+        Long eventId = eventUpdate.getId();
+        Event event = eventRepo.findById(eventId).orElseThrow(() -> new NotFoundException(ErrorMessage.EVENT_NOT_FOUND_BY_ID + eventId));
+
+        if (user.getRole() != Role.ROLE_ADMIN || !user.getId().equals(event.getOrganizer().getId())) {
+            throw new BadRequestException(ErrorMessage.USER_HAS_NO_PERMISSION);
+        }
+
+        List<EventDateLocation> eventDateLocationList = new ArrayList<>();
+        for (EventDateLocationDtoRequest e : eventUpdate.getDates()) {
+            EventDateLocation eventDateLocation = modelMapper.map(e, EventDateLocation.class);
+            Address address = modelMapper.map(e.getAddress(), Address.class);
+
+            eventDateLocation.setAddress(address);
+            eventDateLocation.setEvent(event);
+
+            eventDateLocationList.add(eventDateLocation);
+        }
+
+        List<AdditionalImage> additionalImagesLinks = Arrays.stream(images)
+                .map(fileService::upload)
+                .map(data -> AdditionalImage.builder().data(data).build())
+                .toList();
+
+        event.setTitle(eventUpdate.getTitle());
+        event.setDescription(eventUpdate.getDescription());
+        event.setDates(eventDateLocationList);
+        event.setTitleImage(getTitleImageLinkOrDie(images));
+        event.setAdditionalImages(additionalImagesLinks);
+
+        //todo: check images delete
+
+        eventRepo.save(event);
 
         return modelMapper.map(event, EventCreateDtoResponse.class);
     }

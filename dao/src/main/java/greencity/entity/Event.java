@@ -61,4 +61,22 @@ public class Event {
     @Column(name = "additional_images_id")
     @OneToMany(mappedBy = "event", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AdditionalImage> additionalImages = new ArrayList<>(); //up to 10MB and have JPG or PNG format.
+
+    public void setDates(@Size(min = 1, max = 7, message = "Must add from 1 to 7 sets of date, time and location parameters") List<EventDateLocation> dates) {
+        if (this.dates != null) {
+            this.dates.clear();
+            this.dates.addAll(dates);
+        } else {
+            this.dates = dates;
+        }
+    }
+
+    public void setAdditionalImages(List<AdditionalImage> additionalImages) {
+        if (this.additionalImages != null) {
+            this.additionalImages.clear();
+            this.additionalImages.addAll(additionalImages);
+        } else {
+            this.additionalImages = additionalImages;
+        }
+    }
 }
