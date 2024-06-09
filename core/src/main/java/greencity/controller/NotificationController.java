@@ -1,10 +1,13 @@
 package greencity.controller;
 
+import greencity.annotations.CurrentUser;
 import greencity.constant.HttpStatuses;
 import greencity.dto.notifications.CreateNotificationDto;
 import greencity.dto.notifications.NotificationDto;
+import greencity.dto.user.UserVO;
 import greencity.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
@@ -122,5 +125,25 @@ public class NotificationController {
     @PatchMapping("/markAsRead/{notificationId}")
     public ResponseEntity<NotificationDto> markAsRead(@PathVariable Long notificationId) {
         return ResponseEntity.status(HttpStatus.OK).body(notificationService.markAsRead(notificationId));
+    }
+
+    /**
+     * Method that deletes notification by notificationId.
+     *
+     * @param notificationId id of notification
+     * @param userVO authenticated user
+     * @return request status code
+     */
+    @Operation(summary = "Delete notification by id.")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
+            @ApiResponse(responseCode = "403", description = HttpStatuses.FORBIDDEN),
+            @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
+    })
+    @DeleteMapping("/{notificationId}")
+    public ResponseEntity<Void> deleteNotificationById(@PathVariable Long notificationId,
+                                                       @Parameter(hidden = true) @CurrentUser UserVO userVO) {
+        notificationService.deleteById(notificationId, userVO.getId());
+        return ResponseEntity.ok().build();
     }
 }
