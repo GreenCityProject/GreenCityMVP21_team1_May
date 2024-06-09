@@ -9,9 +9,6 @@ import greencity.entity.*;
 import greencity.enums.Role;
 import greencity.exception.exceptions.BadRequestException;
 import greencity.exception.exceptions.NotFoundException;
-import greencity.repository.AdditionalImageRepo;
-import greencity.repository.AddressRepo;
-import greencity.repository.EventDateLocationRepo;
 import greencity.repository.EventRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -33,9 +30,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class EventServiceImpl implements EventService {
     private final EventRepo eventRepo;
-    private final EventDateLocationRepo eventDateLocationRepo;
-    private final AdditionalImageRepo additionalImageRepo;
-    private final AddressRepo addressRepo;
     private final UserService userService;
     private final RestClient restClient;
     private final FileService fileService;
@@ -86,7 +80,7 @@ public class EventServiceImpl implements EventService {
         event.setDates(eventDateLocationList);
         event = eventRepo.save(event);
 
-//        restClient.sendNotificationToUser(prepareNotificationFromEvent(event), organiser.getEmail());
+        restClient.sendNotificationToUser(prepareNotificationFromEvent(event), organiser.getEmail());
 
         return modelMapper.map(event, EventCreateDtoResponse.class);
     }
@@ -129,18 +123,20 @@ public class EventServiceImpl implements EventService {
             eventDateLocationList.add(eventDateLocation);
         }
 
-        List<AdditionalImage> additionalImagesLinks = Arrays.stream(images)
-                .map(fileService::upload)
-                .map(data -> AdditionalImage.builder().data(data).build())
-                .toList();
+        var additionalImagesLinks = getLinksOfImages(images);
+        var titleImage = additionalImagesLinks.isEmpty() ? "" : additionalImagesLinks.getFirst().getData();
+        var additionalImageList = additionalImagesLinks.size() > 1 ?
+                additionalImagesLinks.subList(1, additionalImagesLinks.size()) : new ArrayList<AdditionalImage>();
+
+        for(AdditionalImage a: additionalImageList){
+            a.setEvent(event);
+        }
 
         event.setTitle(eventUpdate.getTitle());
         event.setDescription(eventUpdate.getDescription());
         event.setDates(eventDateLocationList);
-        event.setTitleImage(getTitleImageLinkOrDie(images));
-        event.setAdditionalImages(additionalImagesLinks);
-
-        //todo: check images delete
+        event.setTitleImage(titleImage);
+        event.setAdditionalImages(additionalImageList);
 
         eventRepo.save(event);
 
