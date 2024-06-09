@@ -1,6 +1,5 @@
 package greencity.dto.event;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -11,6 +10,7 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @EqualsAndHashCode
+@ToString
 public class AddressDtoResponse {
     private BigDecimal latitude;
     private BigDecimal longitude;

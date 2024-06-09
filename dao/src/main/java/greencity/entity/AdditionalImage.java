@@ -11,8 +11,8 @@ import lombok.*;
 @Setter
 @Builder
 @Table(name = "additional_images")
-@EqualsAndHashCode
-@ToString
+@EqualsAndHashCode(exclude = {"id","event"})
+@ToString(exclude = {"id","event"})
 public class AdditionalImage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

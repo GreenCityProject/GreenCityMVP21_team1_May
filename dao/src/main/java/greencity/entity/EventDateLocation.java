@@ -1,10 +1,11 @@
 package greencity.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import lombok.*;
+import org.hibernate.validator.constraints.URL;
 
 import java.time.LocalDateTime;
 
@@ -15,14 +16,15 @@ import java.time.LocalDateTime;
 @Setter
 @Builder
 @Table(name = "event_date_locations")
-@EqualsAndHashCode//(exclude = {"event"})
-@ToString(exclude = {"event"})
+@EqualsAndHashCode(exclude = {"id", "event"})
+@ToString(exclude = {"id", "event"})
 public class EventDateLocation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
     private Long id;
 
+    @Valid
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "address_id")
     private Address address;
@@ -32,21 +34,23 @@ public class EventDateLocation {
     private Event event;
 
     @NotNull
-    @Future
+    @Future(message = "Start date and time must be in the future")
     @Column(name = "start_time", nullable = false)
-    private LocalDateTime startTime;//Date must be equal to end Date. if add day - set to 9:00 on front-end
+    private LocalDateTime startTime;
 
     @NotNull
-    @Future
+    @Future(message = "End date and time must be in the future")
     @Column(name = "end_time", nullable = false)
-    private LocalDateTime endTime;//Date must be equal to start Date. if add day - set to 21:00 on front-end
+    private LocalDateTime endTime;
 
     @Column(name = "online_link", nullable = true)
-    @Pattern(
-            regexp = "^(https?://)" // Протокол (http або https)
-                    + "(([\\w.-]*)+\\.[a-z]{2,6})" // Доменне ім'я
-                    + "(:\\d+)?(/[-a-zA-Z0-9@:%_\\+.~#?&//=]*)?$", // Порт і шлях
-            message = "Invalid URL for event ink"
-    )
+    @URL(message = "Invalid URL for event link")
     private String onlineLink;
+
+    @PrePersist
+    public void throwIfStartTimeIsBeforeEnd() {
+        if (!startTime.isBefore(endTime)) {
+            throw new IllegalArgumentException("End time must be after start time");
+        }
+    }
 }

@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @EqualsAndHashCode
+@ToString
 public class EventDateLocationDtoResponse {
     private Long id;
     private Long eventId;

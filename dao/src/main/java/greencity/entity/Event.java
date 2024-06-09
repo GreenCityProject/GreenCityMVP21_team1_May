@@ -2,6 +2,7 @@ package greencity.entity;
 
 import greencity.annotations.ValidStringLength;
 import jakarta.persistence.*;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
@@ -19,8 +20,8 @@ import java.util.List;
 @Setter
 @Builder
 @Table(name = "events")
-@EqualsAndHashCode//(exclude = {"dates","organizer","additionalImages"})
-@ToString(exclude = {"dates", "organizer", "additionalImages"})
+@EqualsAndHashCode(exclude = {"id", "timestamp", "organizer", "titleImage", "additionalImages"})
+@ToString(exclude = {"id", "timestamp", "organizer", "titleImage", "additionalImages"})
 public class Event {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,6 +37,7 @@ public class Event {
     @Column(name = "title")
     private String title;
 
+    @Valid
     @Size(min = 1, max = 7, message = "Must add from 1 to 7 sets of date, time and location parameters")
     @Column(name = "event_date_location_id")
     @OneToMany(mappedBy = "event", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
@@ -56,9 +58,10 @@ public class Event {
 
     @NotNull
     @Column(name = "title_image")
-    private String titleImage = "default image"; //up to 10MB and have JPG or PNG format.
+    private String titleImage = "default image";
 
+    @Valid
     @Column(name = "additional_images_id")
     @OneToMany(mappedBy = "event", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<AdditionalImage> additionalImages = new ArrayList<>(); //up to 10MB and have JPG or PNG format.
+    private List<AdditionalImage> additionalImages = new ArrayList<>();
 }

@@ -13,8 +13,8 @@ import java.math.BigDecimal;
 @Setter
 @Builder
 @Table(name = "addresses")
-@EqualsAndHashCode
-@ToString
+@EqualsAndHashCode(exclude = {"id", "eventDateLocation"})
+@ToString(exclude = {"id", "eventDateLocation"})
 public class Address {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

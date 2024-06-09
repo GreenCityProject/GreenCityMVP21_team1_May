@@ -8,6 +8,7 @@ import lombok.*;
 @Getter
 @Setter
 @EqualsAndHashCode
+@ToString
 public class AdditionalImageForEventDtoResponse {
     private String data;
 }

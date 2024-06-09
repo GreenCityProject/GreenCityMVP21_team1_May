@@ -17,7 +17,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,22 +35,25 @@ public class EventServiceImpl implements EventService {
 
         var organiser = userService.findByEmail(principal);
 
-        String titleImageLink = getTitleImageLinkOrDie(images);
-
-        var additionalImagesLinks = Arrays.stream(images)
-                .map(fileService::upload)
-                .map(data -> AdditionalImage.builder().data(data).build())
-                .toList();
+        /**
+         * If no @images: titleImage set to empty String, additionalImages set to empty List
+         * If 1 @images:  this image is set to titleImage, additionalImages set to empty List
+         * If >1 @images: first image is set to titleImage, others are set to additionalImages
+         */
+        var additionalImagesLinks = getLinksOfImages(images);
+        var titleImage = additionalImagesLinks.isEmpty() ? "" : additionalImagesLinks.getFirst().getData();
+        var additionalImageList = additionalImagesLinks.size() > 1 ?
+                additionalImagesLinks.subList(1, additionalImagesLinks.size() - 1) : new ArrayList<AdditionalImage>();
 
         Event event = Event.builder()
                 .title(dto.getTitle())
                 .description(dto.getDescription())
-                .titleImage(titleImageLink)
+                .titleImage(titleImage)
                 .isOpen(dto.getIsOpen())
                 .organizer(User.builder()
                         .id(organiser.getId())
                         .build())
-                .additionalImages(additionalImagesLinks)
+                .additionalImages(additionalImageList)
                 .build();
 
         List<EventDateLocation> eventDateLocationList = new ArrayList<>();
@@ -72,68 +74,77 @@ public class EventServiceImpl implements EventService {
         return modelMapper.map(event, EventCreateDtoResponse.class);
     }
 
-    private String getTitleImageLinkOrDie(MultipartFile[] images) {
-        if (images.length != 0 && !images[0].isEmpty()) {
-            return fileService.upload(images[0]);
+    private List<AdditionalImage> getLinksOfImages(MultipartFile[] images) {
+        if (images.length == 0) {
+            File file = new File("service/tempImage.png");
+            byte[] bytes;
+            try {
+                bytes = Files.readAllBytes(file.toPath());
+            } catch (IOException ex) {
+                log.warn("No default image for Event Tile was found! Title image now set to NULL.");
+                return new ArrayList<>();
+            }
+
+            MultipartFile multipartFile = new MultipartFileImpl("name", "tempImage.png", "multipart/form-data", bytes);
+
+            AdditionalImage defaultImage = AdditionalImage.builder().data(fileService.upload(multipartFile)).build();
+            return List.of(defaultImage);
         }
-
-        File file = new File("service/tempImage.png");
-        byte[] bytes;
-        try {
-            bytes = Files.readAllBytes(file.toPath());
-        } catch (IOException ex) {
-            log.warn("No default image for Event Tile was found! Title image now set to NULL.");
-            return "";
+        List<String> list = new ArrayList<>();
+        for (MultipartFile mpf : images) {
+            list.add(fileService.upload(mpf));
         }
-
-        MultipartFile multipartFile = new MultipartFileImpl("name", "tempImage.png", "multipart/form-data", bytes);
-
-        return fileService.upload(multipartFile);
+        return list.stream().map(imLink -> AdditionalImage.builder()
+                        .data(imLink)
+                        .build())
+                .toList();
     }
 
     private NotificationDto prepareNotificationFromEvent(Event event) {
-        String datesTable =
-                "        <table>                            " +
-                        "       <thead>                     " +
-                        "           <tr>                    " +
-                        "               <th>Start Time</th> " +
-                        "                 <th>End Time</th> " +
-                        "                 <th>Address</th>  " +
-                        "               <th>Online Link</th>" +
-                        "           </tr>                   " +
-                        "       </thead>                    " +
-                        "   <tbody>                         " +
-                        event.getDates().stream()
-                                .map(eventDate -> String.format(
-                                        "        <tr>                               " +
-                                                "   <td>%s</td>                     " +
-                                                "   <td>%s</td>                     " +
-                                                "   <td>%s</td>                     " +
-                                                "   <td><a href=\"%s\">Link</a></td>" +
-                                                "</tr>                              ",
-                                        eventDate.getStartTime(),
-                                        eventDate.getEndTime(),
-                                        eventDate.getAddress().getFormattedAddressUa(),
-                                        eventDate.getOnlineLink()))
-                                .collect(Collectors.joining()) +
-                        "   </tbody>                        " +
-                        "</table>                           ";
-
-        String emailContent = String.format(
-                "        <html>                                                                        " +
-                        "   <head>                                                                     " +
-                        "      <style>                                                                 " +
-                        "          table { width: 100%%; border-collapse: collapse; }                  " +
-                        "          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }  " +
-                        "          th { background-color: #f2f2f2; }                                   " +
-                        "      </style>                                                                " +
-                        "   </head>                                                                    " +
-                        "      <body>                                                                  " +
-                        "          <h1>%s</h1>                                                         " +
-                        "           <p>%s</p>                                                          " +
-                        "              %s                                                              " +
-                        "      </body>                                                                 " +
-                        "</html>                                                                       ",
+        String datesTable = """
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Start Time</th>
+                            <th>End Time</th>
+                            <th>Address</th>
+                            <th>Online Link</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                """ +
+                event.getDates().stream()
+                        .map(eventDate -> String.format("""
+                                        <tr>
+                                           <td>%s</td>
+                                           <td>%s</td>
+                                           <td>%s</td>
+                                           <td><a href=\\"%s\\">Link</a></td>
+                                        </tr>
+                                        """,
+                                eventDate.getStartTime(),
+                                eventDate.getEndTime(),
+                                eventDate.getAddress().getFormattedAddressUa(),
+                                eventDate.getOnlineLink()))
+                        .collect(Collectors.joining()) +
+                "   </tbody>" +
+                "</table>";
+        String emailContent = String.format("""
+                        <html>
+                           <head>
+                              <style>
+                                  table { width: 100%%; border-collapse: collapse; }
+                                  th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                                  th { background-color: #f2f2f2; }
+                              </style>
+                           </head>
+                              <body>
+                                  <h1>%s</h1>
+                                   <p>%s</p>
+                                      %s
+                              </body>
+                        </html>
+                        """,
                 event.getTitle(),
                 event.getDescription(),
                 datesTable);
