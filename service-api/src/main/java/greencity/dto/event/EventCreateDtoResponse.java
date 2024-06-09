@@ -12,6 +12,7 @@ import java.util.List;
 @Setter
 @Builder
 @EqualsAndHashCode
+@ToString
 public class EventCreateDtoResponse {
     private Long id;
     private LocalDateTime timestamp;
