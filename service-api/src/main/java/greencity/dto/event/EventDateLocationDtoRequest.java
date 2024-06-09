@@ -9,16 +9,17 @@ import java.time.LocalDateTime;
 
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @Getter
 @Setter
 @EqualsAndHashCode
 @ToString
 public class EventDateLocationDtoRequest {
 
-    @NotNull(message = "startTime must not be NULL")
+    @NotNull(message = "Start time must not be NULL")
     private LocalDateTime startTime;
 
-    @NotNull(message = "endTime must not be NULL")
+    @NotNull(message = "End time must not be NULL")
     private LocalDateTime endTime;
 
     private String onlineLink;

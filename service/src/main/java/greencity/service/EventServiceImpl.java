@@ -43,7 +43,7 @@ public class EventServiceImpl implements EventService {
         var additionalImagesLinks = getLinksOfImages(images);
         var titleImage = additionalImagesLinks.isEmpty() ? "" : additionalImagesLinks.getFirst().getData();
         var additionalImageList = additionalImagesLinks.size() > 1 ?
-                additionalImagesLinks.subList(1, additionalImagesLinks.size() - 1) : new ArrayList<AdditionalImage>();
+                additionalImagesLinks.subList(1, additionalImagesLinks.size()) : new ArrayList<AdditionalImage>();
 
         Event event = Event.builder()
                 .title(dto.getTitle())

@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 @EqualsAndHashCode
 @ToString
 public class AddressDtoResponse {
+    private Long id;
     private BigDecimal latitude;
     private BigDecimal longitude;
     private String countryEn;

@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @Getter
 @Setter
 @EqualsAndHashCode
