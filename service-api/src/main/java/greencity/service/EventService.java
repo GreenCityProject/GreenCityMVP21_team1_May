@@ -9,4 +9,6 @@ public interface EventService {
     EventCreateDtoResponse create(EventCreateDtoRequest dto,
                                   MultipartFile[] images,
                                   String principal);
+
+    void delete(Long eventId, String name);
 }

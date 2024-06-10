@@ -1,11 +1,16 @@
 package greencity.service;
 
 import greencity.client.RestClient;
+import greencity.constant.ErrorMessage;
 import greencity.dto.event.EventCreateDtoRequest;
 import greencity.dto.event.EventCreateDtoResponse;
 import greencity.dto.event.EventDateLocationDtoRequest;
 import greencity.dto.user.NotificationDto;
+import greencity.dto.user.UserVO;
 import greencity.entity.*;
+import greencity.enums.Role;
+import greencity.exception.exceptions.NotFoundException;
+import greencity.exception.exceptions.UserHasNoPermissionToAccessException;
 import greencity.repository.EventRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +29,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class EventServiceImpl implements EventService {
+
     private final EventRepo eventRepo;
     private final UserService userService;
     private final RestClient restClient;
@@ -188,5 +194,23 @@ public class EventServiceImpl implements EventService {
                 .body(emailContent)
                 .title(String.format("Event \"%s...\" created", event.getTitle()))
                 .build();
+    }
+
+    /**
+     * Deletes an event with the specified eventId and name.
+     *
+     * @param eventId The ID of the event to be deleted.
+     * @param email The email of the user who is deleting the event.
+     */
+    @Override
+    public void delete(Long eventId, String email) {
+        UserVO userVO = restClient.findByEmail(email);
+        Event toDelete = eventRepo.findById(eventId).orElseThrow(() -> new NotFoundException(ErrorMessage.EVENT_NOT_FOUND));
+
+        if (toDelete.getOrganizer().getId().equals(userVO.getId()) || userVO.getRole() == Role.ROLE_ADMIN) {
+            eventRepo.delete(toDelete);
+        } else {
+            throw new UserHasNoPermissionToAccessException(ErrorMessage.USER_HAS_NO_PERMISSION);
+        }
     }
 }
