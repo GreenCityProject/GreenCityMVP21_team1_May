@@ -5,6 +5,7 @@ import greencity.constant.ErrorMessage;
 import greencity.dto.PageableDto;
 import greencity.dto.econews.EcoNewsVO;
 import greencity.dto.econewscomment.*;
+import greencity.dto.notifications.CreateNotificationDto;
 import greencity.dto.user.UserVO;
 import greencity.entity.EcoNews;
 import greencity.entity.EcoNewsComment;
@@ -33,6 +34,7 @@ import static greencity.constant.AppConstant.AUTHORIZATION;
 public class EcoNewsCommentServiceImpl implements EcoNewsCommentService {
     private EcoNewsCommentRepo ecoNewsCommentRepo;
     private EcoNewsService ecoNewsService;
+    private NotificationService notificationService;
     private ModelMapper modelMapper;
     private final SimpMessagingTemplate messagingTemplate;
     private final greencity.rating.RatingCalculation ratingCalculation;
@@ -64,6 +66,7 @@ public class EcoNewsCommentServiceImpl implements EcoNewsCommentService {
                     () -> new BadRequestException(ErrorMessage.COMMENT_NOT_FOUND_EXCEPTION));
             if (parentComment.getParentComment() == null) {
                 ecoNewsComment.setParentComment(parentComment);
+                sendNotification(userVO, parentComment);
             } else {
                 throw new BadRequestException(ErrorMessage.CANNOT_REPLY_THE_REPLY);
             }
@@ -72,6 +75,18 @@ public class EcoNewsCommentServiceImpl implements EcoNewsCommentService {
         CompletableFuture.runAsync(
             () -> ratingCalculation.ratingCalculation(RatingCalculationEnum.ADD_COMMENT, userVO, accessToken));
         return modelMapper.map(ecoNewsCommentRepo.save(ecoNewsComment), AddEcoNewsCommentDtoResponse.class);
+    }
+
+    private void sendNotification(UserVO currentUser, EcoNewsComment parentComment) {
+        EcoNews ecoNews = ecoNewsRepo.findById(parentComment.getEcoNews().getId()).orElseThrow();
+        CreateNotificationDto notificationDto = CreateNotificationDto.builder()
+                .userId(parentComment.getUser().getId())
+                .senderId(currentUser.getId())
+                .section("GreenCity")
+                .title("Your comment was replied")
+                .message(String.format("%s replied to your comment on the news %s.", currentUser.getFirstName(), ecoNews.getTitle()))
+                .build();
+        notificationService.save(notificationDto);
     }
 
     /**
