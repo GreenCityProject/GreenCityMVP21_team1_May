@@ -8,6 +8,7 @@ import greencity.dto.PageableAdvancedDto;
 import greencity.dto.PageableDto;
 import greencity.dto.econews.*;
 import greencity.dto.econewscomment.EcoNewsCommentVO;
+import greencity.dto.notifications.CreateNotificationDto;
 import greencity.dto.ratingstatistics.RatingStatisticsViewDto;
 import greencity.dto.search.SearchNewsDto;
 import greencity.dto.tag.TagVO;
@@ -51,6 +52,7 @@ public class EcoNewsServiceImpl implements EcoNewsService {
     private final RestClient restClient;
     private final ModelMapper modelMapper;
     private final TagsService tagService;
+    private final NotificationService notificationService;
     private final FileService fileService;
     private final greencity.rating.RatingCalculation ratingCalculation;
     private final HttpServletRequest httpServletRequest;
@@ -515,8 +517,20 @@ public class EcoNewsServiceImpl implements EcoNewsService {
             ecoNewsVO.getUsersLikedNews().removeIf(u -> u.getId().equals(userVO.getId()));
         } else {
             ecoNewsVO.getUsersLikedNews().add(userVO);
+            sendNotification(userVO, ecoNewsVO);
         }
         ecoNewsRepo.save(modelMapper.map(ecoNewsVO, EcoNews.class));
+    }
+
+    private void sendNotification(UserVO currentUser, EcoNewsVO news) {
+        CreateNotificationDto notificationDto = CreateNotificationDto.builder()
+                .userId(news.getAuthor().getId())
+                .senderId(currentUser.getId())
+                .section("GreenCity")
+                .title("Your news was liked")
+                .message(String.format("%s likes your news %s.", currentUser.getFirstName(), news.getTitle()))
+                .build();
+        notificationService.save(notificationDto);
     }
 
     /**
