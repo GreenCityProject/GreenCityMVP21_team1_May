@@ -13,9 +13,7 @@ import greencity.mapping.NotificationDtoMapper;
 import greencity.repository.NotificationRepo;
 import greencity.repository.UserRepo;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.stereotype.Service;
-
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -126,7 +124,7 @@ public class NotificationServiceImpl implements NotificationService {
                 .toList();
     }
 
-        @Override
+    @Override
     public NotificationDto markAsRead(Long notificationId) {
         return notificationRepo.findById(notificationId)
                 .map(notification -> {

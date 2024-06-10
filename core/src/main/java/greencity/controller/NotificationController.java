@@ -96,7 +96,7 @@ public class NotificationController {
             @ApiResponse(responseCode = "403", description = HttpStatuses.FORBIDDEN),
             @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
     })
-    @PostMapping("/create")
+    @PostMapping
     public ResponseEntity<NotificationDto> createNotification(@RequestBody @Valid CreateNotificationDto createNotification) {
         return ResponseEntity.status(HttpStatus.CREATED).body(notificationService.save(createNotification));
     }
