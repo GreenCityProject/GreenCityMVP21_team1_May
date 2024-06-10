@@ -5,6 +5,7 @@ import greencity.constant.ErrorMessage;
 import greencity.dto.PageableDto;
 import greencity.dto.econews.EcoNewsVO;
 import greencity.dto.econewscomment.*;
+import greencity.dto.notifications.CreateNotificationDto;
 import greencity.dto.user.UserVO;
 import greencity.entity.EcoNews;
 import greencity.entity.EcoNewsComment;
@@ -33,6 +34,7 @@ import static greencity.constant.AppConstant.AUTHORIZATION;
 public class EcoNewsCommentServiceImpl implements EcoNewsCommentService {
     private EcoNewsCommentRepo ecoNewsCommentRepo;
     private EcoNewsService ecoNewsService;
+    private NotificationService notificationService;
     private ModelMapper modelMapper;
     private final SimpMessagingTemplate messagingTemplate;
     private final greencity.rating.RatingCalculation ratingCalculation;
@@ -71,7 +73,19 @@ public class EcoNewsCommentServiceImpl implements EcoNewsCommentService {
         String accessToken = httpServletRequest.getHeader(AUTHORIZATION);
         CompletableFuture.runAsync(
             () -> ratingCalculation.ratingCalculation(RatingCalculationEnum.ADD_COMMENT, userVO, accessToken));
+        sendNotification(userVO, ecoNewsVO);
         return modelMapper.map(ecoNewsCommentRepo.save(ecoNewsComment), AddEcoNewsCommentDtoResponse.class);
+    }
+
+    private void sendNotification(UserVO currentUser, EcoNewsVO ecoNews) {
+        CreateNotificationDto notificationDto = CreateNotificationDto.builder()
+                .userId(ecoNews.getAuthor().getId())
+                .senderId(currentUser.getId())
+                .section("GreenCity")
+                .title("Your news was commented")
+                .message(String.format("%s commented on your news %s.", currentUser.getFirstName(), ecoNews.getTitle()))
+                .build();
+        notificationService.save(notificationDto);
     }
 
     /**

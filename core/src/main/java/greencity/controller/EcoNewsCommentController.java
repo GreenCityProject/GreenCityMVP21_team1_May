@@ -127,7 +127,7 @@ public class EcoNewsCommentController {
         @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
         @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
     })
-    @DeleteMapping("")
+    @DeleteMapping
     public ResponseEntity<Object> delete(Long id, @Parameter(hidden = true) @CurrentUser UserVO user) {
         ecoNewsCommentService.deleteById(id, user);
         return ResponseEntity.ok().build();
@@ -146,7 +146,7 @@ public class EcoNewsCommentController {
         @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
         @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
     })
-    @PatchMapping("")
+    @PatchMapping
     public void update(Long id, @RequestParam @NotBlank String text,
                        @Parameter(hidden = true) @CurrentUser UserVO user) {
         ecoNewsCommentService.update(text, id, user);
