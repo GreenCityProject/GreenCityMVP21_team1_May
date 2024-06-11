@@ -112,21 +112,12 @@ public class EventServiceImpl implements EventService {
             throw new BadRequestException(ErrorMessage.USER_HAS_NO_PERMISSION);
         }
 
-        List<EventDateLocation> eventDateLocationList = new ArrayList<>();
-        for (EventDateLocationDtoRequest e : eventUpdate.getDates()) {
-            EventDateLocation eventDateLocation = modelMapper.map(e, EventDateLocation.class);
-            Address address = modelMapper.map(e.getAddress(), Address.class);
+        List<EventDateLocation> eventDateLocationList = convertLocationList(eventUpdate, event);
 
-            eventDateLocation.setAddress(address);
-            eventDateLocation.setEvent(event);
-
-            eventDateLocationList.add(eventDateLocation);
-        }
-
-        var additionalImagesLinks = getLinksOfImages(images);
-        var titleImage = additionalImagesLinks.isEmpty() ? "" : additionalImagesLinks.getFirst().getData();
-        var additionalImageList = additionalImagesLinks.size() > 1 ?
-                additionalImagesLinks.subList(1, additionalImagesLinks.size()) : new ArrayList<AdditionalImage>();
+        List<AdditionalImage> additionalImagesLinks = getLinksOfImages(images);
+        String titleImage = additionalImagesLinks.isEmpty() ? "" : additionalImagesLinks.getFirst().getData();
+        List<AdditionalImage> additionalImageList = additionalImagesLinks.size() > 1 ?
+                additionalImagesLinks.subList(1, additionalImagesLinks.size()) : new ArrayList<>();
 
         for(AdditionalImage a: additionalImageList){
             a.setEvent(event);
@@ -141,6 +132,20 @@ public class EventServiceImpl implements EventService {
         eventRepo.save(event);
 
         return modelMapper.map(event, EventCreateDtoResponse.class);
+    }
+
+    List<EventDateLocation> convertLocationList(EventUpdateDtoRequest eventUpdate, Event event){
+        List<EventDateLocation> eventDateLocationList = new ArrayList<>();
+        for (EventDateLocationDtoRequest e : eventUpdate.getDates()) {
+            EventDateLocation eventDateLocation = modelMapper.map(e, EventDateLocation.class);
+            Address address = modelMapper.map(e.getAddress(), Address.class);
+
+            eventDateLocation.setAddress(address);
+            eventDateLocation.setEvent(event);
+
+            eventDateLocationList.add(eventDateLocation);
+        }
+        return eventDateLocationList;
     }
 
     private List<AdditionalImage> getLinksOfImages(MultipartFile[] images) {
