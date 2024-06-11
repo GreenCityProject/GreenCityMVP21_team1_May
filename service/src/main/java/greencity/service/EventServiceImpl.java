@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -80,7 +81,7 @@ public class EventServiceImpl implements EventService {
         event.setDates(eventDateLocationList);
         event = eventRepo.save(event);
 
-        restClient.sendNotificationToUser(prepareNotificationFromEvent(event), organiser.getEmail());
+        //restClient.sendNotificationToUser(prepareNotificationFromEvent(event), organiser.getEmail());
 
         return modelMapper.map(event, EventCreateDtoResponse.class);
     }
@@ -108,7 +109,7 @@ public class EventServiceImpl implements EventService {
         Long eventId = eventUpdate.getId();
         Event event = eventRepo.findById(eventId).orElseThrow(() -> new NotFoundException(ErrorMessage.EVENT_NOT_FOUND_BY_ID + eventId));
 
-        if (user.getRole() != Role.ROLE_ADMIN || !user.getId().equals(event.getOrganizer().getId())) {
+        if (user.getRole() != Role.ROLE_ADMIN && !Objects.equals(user.getId(), event.getOrganizer().getId())) {
             throw new BadRequestException(ErrorMessage.USER_HAS_NO_PERMISSION);
         }
 
