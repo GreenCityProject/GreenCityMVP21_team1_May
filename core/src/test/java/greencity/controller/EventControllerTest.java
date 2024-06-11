@@ -1,13 +1,13 @@
 package greencity.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import greencity.GreenCityApplication;
-import greencity.dto.event.EventCreateDtoResponse;
-import greencity.dto.user.UserVO;
 import greencity.exception.handler.CustomExceptionHandler;
 import greencity.service.EventService;
-import greencity.service.LanguageService;
 import greencity.service.UserService;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +19,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.text.SimpleDateFormat;
 import java.util.Locale;
 
 import static greencity.ModelUtils.*;
@@ -44,55 +45,53 @@ class EventControllerTest {
     private ModelMapper modelMapper;
 
     @MockBean
-    private LanguageService languageService;
-
-    @MockBean
     private UserService userService;
 
     @MockBean
     private EventService eventService;
 
-    private UserVO userVO;
+    private static ObjectWriter writer;
 
     public static final String EVENT_LINK = "/event";
 
-//    private PageableDto<HabitDto> pageableDto;
-
-    @BeforeEach
-    void setUp() {
-//        userVO = getUserVO();
-//        pageableDto = getPageableHabitDto(1, 1, 1);
-
-//        when(userService.findByEmail(anyString())).thenReturn(userVO);
-//        when(languageService.findAllLanguageCodes()).thenReturn(List.of("en"));
+    @BeforeAll
+    static void setUp() {
+        ObjectMapper mapper = getObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        writer = mapper
+                .writer()
+                .withDefaultPrettyPrinter()
+                .with(new SimpleDateFormat("yy-MM-yy HH:mm"));
     }
 
     @Test
     void createEvent_201Created_ReturnsDto() throws Exception {
-        var mapper = getObjectMapper();
-        var dtoRequest = mapper.writeValueAsString(getEventCreateDtoRequest(1));
-        var serviceResponse = getEventCreateDtoResponse(1, 1);
-        var json = new MockMultipartFile("dto", "", APPLICATION_JSON_VALUE, dtoRequest.getBytes());
-        var image1 = new MockMultipartFile("images", "test1.jpg", MULTIPART_FORM_DATA_VALUE, "test image1 content".getBytes());
-        var image2 = new MockMultipartFile("images", "test2.jpg", MULTIPART_FORM_DATA_VALUE, "test image2 content".getBytes());
+        int numberOfEventDateLocations = 2;
+
+        var dtoRequestJson = writer.writeValueAsString(getEventCreateDtoRequest(numberOfEventDateLocations));
+        var serviceResponse = getEventCreateDtoResponse(numberOfEventDateLocations, 2);
+        var dtoResponseJson = writer.writeValueAsString(serviceResponse);
+
+        var dtoMultipartFile = new MockMultipartFile("dto", "", APPLICATION_JSON_VALUE, dtoRequestJson.getBytes());
+        var firstMultipartFile = new MockMultipartFile("images", "test1.jpg", MULTIPART_FORM_DATA_VALUE, "test image1 content".getBytes());
+        var secondMultipartFile = new MockMultipartFile("images", "test2.jpg", MULTIPART_FORM_DATA_VALUE, "test image2 content".getBytes());
+        var thirdMultipartFile = new MockMultipartFile("images", "test3.jpg", MULTIPART_FORM_DATA_VALUE, "test image3 content".getBytes());
 
         when(eventService.create(any(), any(), any())).thenReturn(serviceResponse);
 
-        var actualResp = mapper.writeValueAsString(serviceResponse);
         mockMvc.perform(multipart(EVENT_LINK + "/create")
-                        .file(image1)
-                        .file(image2)
-                        .file(json)
+                        .file(dtoMultipartFile)
+                        .file(firstMultipartFile)
+                        .file(secondMultipartFile)
+                        .file(thirdMultipartFile)
                         .with(csrf())
                         .principal(() -> "username")
-//                        .content(dtoRequest)
                         .locale(Locale.ENGLISH)
                         .accept(MULTIPART_FORM_DATA, APPLICATION_JSON))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(APPLICATION_JSON))
-                .andExpect(content().json(actualResp));
+                .andExpect(content().json(dtoResponseJson));
 
         verify(eventService).create(any(), any(), any());
-
     }
 }
