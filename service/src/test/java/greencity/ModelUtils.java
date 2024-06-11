@@ -11,6 +11,9 @@ import greencity.dto.habitstatuscalendar.HabitStatusCalendarVO;
 import greencity.dto.language.LanguageDTO;
 import greencity.dto.language.LanguageTranslationDTO;
 import greencity.dto.language.LanguageVO;
+import greencity.dto.notifications.CreateNotificationDto;
+import greencity.dto.notifications.NotificationDto;
+import greencity.dto.notifications.NotificationUserDto;
 import greencity.dto.ownsecurity.OwnSecurityVO;
 import greencity.dto.search.SearchNewsDto;
 import greencity.dto.shoppinglistitem.CustomShoppingListItemResponseDto;
@@ -800,5 +803,46 @@ public class ModelUtils {
                 .id(4L)
                 .habit(getHabit())
                 .build();
+    }
+
+    public static Notification getNotification() {
+        return Notification.builder()
+            .id(1L)
+            .senderUser(getUser())
+            .user(getUser())
+            .title("title")
+            .message("message")
+            .section("section")
+            .build();
+    }
+
+    public static NotificationDto getNotificationDto() {
+        return NotificationDto.builder()
+            .id(1L)
+            .senderUser(getNotificationUserDto())
+            .user(getNotificationUserDto())
+            .title("title")
+            .message("message")
+            .section("section")
+            .createdAt(LocalDateTime.now())
+            .isRead(false)
+            .build();
+    }
+
+    public static NotificationUserDto getNotificationUserDto() {
+        return NotificationUserDto.builder()
+            .id(1L)
+            .name("name")
+            .build();
+    }
+
+    public static CreateNotificationDto getCreateNotificationDto() {
+        return CreateNotificationDto.builder()
+            .title("title")
+            .userId(1L)
+            .senderId(2L)
+            .message("message")
+            .section("section")
+            .build();
     }
 }
