@@ -65,7 +65,7 @@ class EventControllerTest {
     }
 
     @Test
-    void createEvent_201Created_ReturnsDto() throws Exception {
+    void createEvent_validRequest_201Created() throws Exception {
         int numberOfEventDateLocations = 2;
 
         var dtoRequestJson = writer.writeValueAsString(getEventCreateDtoRequest(numberOfEventDateLocations));
@@ -75,7 +75,6 @@ class EventControllerTest {
         var dtoMultipartFile = new MockMultipartFile("dto", "", APPLICATION_JSON_VALUE, dtoRequestJson.getBytes());
         var firstMultipartFile = new MockMultipartFile("images", "test1.jpg", MULTIPART_FORM_DATA_VALUE, "test image1 content".getBytes());
         var secondMultipartFile = new MockMultipartFile("images", "test2.jpg", MULTIPART_FORM_DATA_VALUE, "test image2 content".getBytes());
-        var thirdMultipartFile = new MockMultipartFile("images", "test3.jpg", MULTIPART_FORM_DATA_VALUE, "test image3 content".getBytes());
 
         when(eventService.create(any(), any(), any())).thenReturn(serviceResponse);
 
@@ -83,7 +82,6 @@ class EventControllerTest {
                         .file(dtoMultipartFile)
                         .file(firstMultipartFile)
                         .file(secondMultipartFile)
-                        .file(thirdMultipartFile)
                         .with(csrf())
                         .principal(() -> "username")
                         .locale(Locale.ENGLISH)
