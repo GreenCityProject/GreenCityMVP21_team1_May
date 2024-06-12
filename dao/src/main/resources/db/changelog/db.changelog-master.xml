@@ -177,5 +177,6 @@
     <include file="db/changelog/logs/ch-drop-news-subscribers-table-Bokalo.xml"/>
     <include file="db/changelog/logs/ch-drop-user-friends-table-Bokalo.xml"/>
     <include file="db/changelog/logs/ch-crate-event-Mashkin-Andriy.xml"/>
+    <include file="db/changelog/logs/ch-add-table-event-comment-Fedotov.xml"/>
 </databaseChangeLog>
 
