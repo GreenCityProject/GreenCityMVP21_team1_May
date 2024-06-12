@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="Petukhov-1" author="Maksym Petukhov">
+        <createTable tableName="user_friends">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="friend_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="user_friends" baseColumnNames="user_id"
+                                 constraintName="fk_user_friends_user"
+                                 referencedTableName="users" referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint baseTableName="user_friends" baseColumnNames="friend_id"
+                                 constraintName="fk_user_friends_friend"
+                                 referencedTableName="users" referencedColumnNames="id"/>
+
+        <createIndex indexName="idx_user_id" tableName="user_friends">
+            <column name="user_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_friend_id" tableName="user_friends">
+            <column name="friend_id"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>
