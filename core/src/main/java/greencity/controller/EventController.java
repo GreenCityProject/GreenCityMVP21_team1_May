@@ -1,7 +1,8 @@
 package greencity.controller;
 
-import greencity.annotations.CurrentUser;
+import greencity.annotations.MultipartValidation;
 import greencity.constant.HttpStatuses;
+import greencity.annotations.CurrentUser;
 import greencity.dto.event.EventCreateDtoRequest;
 import greencity.dto.event.EventCreateDtoResponse;
 import greencity.dto.event.EventUpdateDtoRequest;
@@ -9,10 +10,11 @@ import greencity.dto.user.UserVO;
 import greencity.service.EventService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
-import jakarta.validation.ValidationException;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,9 +24,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
+
+import static greencity.constant.EventConstants.*;
 
 @RestController
 @RequestMapping("/event")
@@ -33,35 +35,32 @@ public class EventController {
 
     private EventService eventService;
 
-    @PostMapping(value = "/create", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<EventCreateDtoResponse> createEvent(
+
+    /**
+     * Method creates Event by given {@link EventCreateDtoRequest}.
+     *
+     * @param dto       of {@link EventCreateDtoRequest}.
+     * @param images    is an array of {@link MultipartFile} with event images. First one will be chosen as title.
+     * @param principal is automatically inserted vie SecurityContextHolder.
+     * @return {@link EventCreateDtoResponse}.
+     */
+    @Operation(summary = "Create new Event")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = HttpStatuses.CREATED,
+                    content = @Content(schema = @Schema(implementation = EventCreateDtoResponse.class))),
+            @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST),
+            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
+            @ApiResponse(responseCode = "409", description = HttpStatuses.CONFLICT)
+    })
+    @PostMapping(value = "", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<EventCreateDtoResponse> create(
             @Valid @RequestPart("dto") EventCreateDtoRequest dto,
-            @Parameter(description = "Array of event images") @Size(max = 5) @RequestPart("images") MultipartFile[] images,
+            @Parameter(description = "Array of event images")
+            @MultipartValidation(maxFileSize = ACCEPTABLE_IMAGE_SIZE_IN_BYTES, fileTypes = FILE_TYPES_STR)
+            @Size(max = MAX_IMAGES_COUNT)
+            @RequestPart("images") MultipartFile[] images,
             @AuthenticationPrincipal String principal) {
-        imagesValidationOrElseTrow(List.of(images));
         return ResponseEntity.status(HttpStatus.CREATED).body(eventService.create(dto, images, principal));
-    }
-
-    private void imagesValidationOrElseTrow(List<MultipartFile> images) {
-        if (images.isEmpty()) return;
-        List<String> validFileTypes = Arrays.asList("jpeg", "png", "jpg");
-        long acceptableSizeInBytes = 10000000L;
-
-        for (MultipartFile image : images) {
-            String originalFilename = Objects.requireNonNull(image.getOriginalFilename(), "Original file name is NULL by some reason.");
-            String fileType = originalFilename.toLowerCase().substring(originalFilename.lastIndexOf(".") + 1);
-            if (fileType.isBlank()) return;
-
-            if (!validFileTypes.contains(fileType)) {
-                throw new ValidationException(String.format("Unsupported format: '%s'. Supported formats: {%s}",
-                        fileType,
-                        validFileTypes));
-            }
-
-            if (Long.compare(image.getSize(), acceptableSizeInBytes) == 1) {
-                throw new ValidationException("Incorrect image size. Maximum allowed size is 10 MB");
-            }
-        }
     }
 
 
@@ -119,5 +118,4 @@ public class EventController {
     ){
         return ResponseEntity.status(HttpStatus.OK).body(eventService.update(eventUpdate, images, user));
     }
-
 }

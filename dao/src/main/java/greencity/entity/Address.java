@@ -1,7 +1,6 @@
 package greencity.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -13,7 +12,8 @@ import java.math.BigDecimal;
 @Setter
 @Builder
 @Table(name = "addresses")
-@EqualsAndHashCode(exclude = {"id", "eventDateLocation"})
+@EqualsAndHashCode(exclude = {"id", "eventDateLocation", "countryEn", "countryUa", "regionEn", "regionUa", "cityEn",
+        "cityUa", "streetEn", "streetUa", "houseNumber", "formattedAddressEn", "formattedAddressUa"})
 @ToString(exclude = {"id", "eventDateLocation"})
 public class Address {
     @Id
@@ -23,10 +23,7 @@ public class Address {
     @OneToOne(mappedBy = "address")
     private EventDateLocation eventDateLocation;
 
-    @NotNull
     private BigDecimal latitude;
-
-    @NotNull
     private BigDecimal longitude;
 
     private String countryEn;
