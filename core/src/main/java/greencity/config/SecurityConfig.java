@@ -161,6 +161,8 @@ public class SecurityConfig {
                                 "/ownSecurity/changePassword")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET,
+                                "/event/{eventId}/comments",
+                                "/event/comments/{commentId}",
                                 "/event",
                                 "/event/{id}",
                                 "/achievements",
