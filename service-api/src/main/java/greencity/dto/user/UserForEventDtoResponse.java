@@ -8,7 +8,7 @@ import lombok.*;
 @Getter
 @Setter
 @EqualsAndHashCode
-public class UserForEventDtoResponse {//todo: why all null except id
+public class UserForEventDtoResponse {
     private Long id;
     private String name;
     private Double organizerRating;

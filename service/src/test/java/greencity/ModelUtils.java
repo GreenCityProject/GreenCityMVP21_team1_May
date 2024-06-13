@@ -5,6 +5,7 @@ import greencity.dto.PageableAdvancedDto;
 import greencity.dto.category.CategoryDto;
 import greencity.dto.econews.*;
 import greencity.dto.econewscomment.*;
+import greencity.dto.event.*;
 import greencity.dto.habit.*;
 import greencity.dto.habitfact.*;
 import greencity.dto.habitstatuscalendar.HabitStatusCalendarVO;
@@ -25,6 +26,7 @@ import greencity.enums.*;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -801,4 +803,171 @@ public class ModelUtils {
                 .habit(getHabit())
                 .build();
     }
+
+    public static EventCreateDtoResponse getEventCreateDtoResponse(int datesNumber, int imagesNumber) {
+        var organiser = UserForEventDtoResponse.builder()
+                .id(1L)
+                .name("username")
+                .organizerRating(1.0)
+                .email("email@booble.com")
+                .build();
+        var createdTimestamp = LocalDateTime.of(2050, 12, 31, 9, 59);
+        var address = AddressDtoResponse.builder()
+                .id(1L)
+                .latitude(BigDecimal.valueOf(51.523788))
+                .longitude(BigDecimal.valueOf(-0.158611))
+                .countryEn("United Kingdom")
+                .countryUa("Сполучене Королівство")
+                .regionEn("London")
+                .regionUa("Лондон")
+                .cityEn("London")
+                .cityUa("Лондон")
+                .streetEn("Baker Street")
+                .streetUa("вулиця Бейкер")
+                .houseNumber("221B")
+                .formattedAddressEn("221B Baker St, London, UK")
+                .formattedAddressUa("вулиця Бейкер, 221B, Лондон, Сполучене Королівство")
+                .build();
+
+        List<EventDateLocationDtoResponse> dates = new ArrayList<>();
+        for (int i = 1; i <= datesNumber; i++) {
+            var eventDateLocation = EventDateLocationDtoResponse.builder()
+                    .id((long) i)
+                    .eventId(1L)
+                    .startTime(createdTimestamp.plusDays(i))
+                    .endTime(createdTimestamp.plusDays(i).plusHours(8))
+                    .onlineLink("https://example.com/online-event")
+                    .address(address)
+                    .build();
+            dates.add(eventDateLocation);
+        }
+
+        List<AdditionalImageForEventDtoResponse> images = new ArrayList<>();
+        for (int i = 1; i <= imagesNumber; i++) {
+            AdditionalImageForEventDtoResponse image = AdditionalImageForEventDtoResponse.builder()
+                    .id((long) i)
+                    .data("https://csb14a548fF" + (i + 154) + ".blob.core.windows.net/allfiles/photo_2021-06-01_15-39-5" + (i + 11) + ".jpg")
+                    .build();
+            images.add(image);
+        }
+
+        EventCreateDtoResponse mainDto = EventCreateDtoResponse.builder()
+                .id(1L)
+                .timestamp(createdTimestamp)
+                .title("New Event Title Example")
+                .dates(dates)
+                .organizer(organiser)
+                .description("<p>Опис події, що містить кілька абзаців для перевірки.</p><p>Другий абзац з описом події.</p>")
+                .isOpen(true)
+                .titleImage("https://csb10032000a548f571.blob.core.windows.net/allfiles/photo_2021-06-01_15-39-56.jpg")
+                .additionalImages(images)
+                .build();
+
+        return mainDto;
+    }
+
+    public static Event getEvent(int datesNumber, int imagesNumber) {
+        var organiser = User.builder()
+                .id(1L)
+                .name("username")
+                .rating(1.0)
+                .email("email@booble.com")
+                .build();
+        var createdTimestamp = LocalDateTime.of(2050, 12, 31, 9, 59);
+        var address = Address.builder()
+                .id(1L)
+                .latitude(BigDecimal.valueOf(51.523788))
+                .longitude(BigDecimal.valueOf(-0.158611))
+                .countryEn("United Kingdom")
+                .countryUa("Сполучене Королівство")
+                .regionEn("London")
+                .regionUa("Лондон")
+                .cityEn("London")
+                .cityUa("Лондон")
+                .streetEn("Baker Street")
+                .streetUa("вулиця Бейкер")
+                .houseNumber("221B")
+                .formattedAddressEn("221B Baker St, London, UK")
+                .formattedAddressUa("вулиця Бейкер, 221B, Лондон, Сполучене Королівство")
+                .build();
+
+        List<EventDateLocation> dates = new ArrayList<>();
+        for (int i = 1; i <= datesNumber; i++) {
+            var eventDateLocation = EventDateLocation.builder()
+                    .id((long) i)
+//                    .event(1L)
+                    .startTime(createdTimestamp.plusDays(i))
+                    .endTime(createdTimestamp.plusDays(i).plusHours(8))
+                    .onlineLink("https://example.com/online-event")
+                    .address(address)
+                    .build();
+            dates.add(eventDateLocation);
+        }
+
+        List<AdditionalImage> images = new ArrayList<>();
+        for (int i = 1; i <= imagesNumber; i++) {
+            AdditionalImage image = AdditionalImage.builder()
+                    .id((long) i)
+                    .data("https://csb14a548fF" + (i + 154) + ".blob.core.windows.net/allfiles/photo_2021-06-01_15-39-5" + (i + 11) + ".jpg")
+                    .build();
+            images.add(image);
+        }
+
+        Event event = Event.builder()
+                .id(1L)
+                .timestamp(createdTimestamp)
+                .title("New Event Title Example")
+//                .dates(dates)
+                .organizer(organiser)
+                .description("<p>Опис події, що містить кілька абзаців для перевірки.</p><p>Другий абзац з описом події.</p>")
+                .isOpen(true)
+                .titleImage("https://csb10032000a548f571.blob.core.windows.net/allfiles/photo_2021-06-01_15-39-56.jpg")
+                .additionalImages(images)
+                .build();
+        for (EventDateLocation d : dates) {
+            d.setEvent(event);
+        }
+        event.setDates(dates);
+        return event;
+    }
+
+    public static EventCreateDtoRequest getEventCreateDtoRequest(int datesNumber) {
+        var createdTimestamp = LocalDateTime.of(2050, 12, 31, 9, 59);
+        var address = AddressDtoRequest.builder()
+                .latitude(BigDecimal.valueOf(51.523788))
+                .longitude(BigDecimal.valueOf(-0.158611))
+                .countryEn("United Kingdom")
+                .countryUa("Сполучене Королівство")
+                .regionEn("London")
+                .regionUa("Лондон")
+                .cityEn("London")
+                .cityUa("Лондон")
+                .streetEn("Baker Street")
+                .streetUa("вулиця Бейкер")
+                .houseNumber("221B")
+                .formattedAddressEn("221B Baker St, London, UK")
+                .formattedAddressUa("вулиця Бейкер, 221B, Лондон, Сполучене Королівство")
+                .build();
+
+        List<EventDateLocationDtoRequest> dates = new ArrayList<>();
+        for (int i = 1; i <= datesNumber; i++) {
+            var eventDateLocation = EventDateLocationDtoRequest.builder()
+                    .startTime(createdTimestamp.plusDays(i))
+                    .endTime(createdTimestamp.plusDays(i).plusHours(8))
+                    .onlineLink("https://example.com/online-event")
+                    .address(address)
+                    .build();
+            dates.add(eventDateLocation);
+        }
+
+        EventCreateDtoRequest mainDto = EventCreateDtoRequest.builder()
+                .title("New Event Title Example")
+                .dates(dates)
+                .description("<p>Опис події, що містить кілька абзаців для перевірки.</p><p>Другий абзац з описом події.</p>")
+                .isOpen(true)
+                .build();
+
+        return mainDto;
+    }
+
 }

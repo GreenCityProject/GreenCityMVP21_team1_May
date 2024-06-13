@@ -39,6 +39,9 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventCreateDtoResponse create(EventCreateDtoRequest dto, MultipartFile[] images, String principal) {
 
+        List<Event> fetchedEvents = eventRepo.findByTitle(dto.getTitle());
+        checkIfEventExistsOrElseThrow(dto, fetchedEvents);
+
         var organiser = userService.findByEmail(principal);
 
         /**
@@ -63,7 +66,7 @@ public class EventServiceImpl implements EventService {
                         .email(organiser.getEmail())
                         .build())
                 .build();
-        for(AdditionalImage a: additionalImageList){
+        for (AdditionalImage a : additionalImageList) {
             a.setEvent(event);
         }
         event.setAdditionalImages(additionalImageList);
@@ -135,6 +138,32 @@ public class EventServiceImpl implements EventService {
         return modelMapper.map(event, EventCreateDtoResponse.class);
     }
 
+    private static void checkIfEventExistsOrElseThrow(EventCreateDtoRequest dto, List<Event> fetchedEvents) {
+        if (!fetchedEvents.isEmpty()) {
+            List<EventDateLocation> edl = dto.getDates().stream()
+                    .map(x -> EventDateLocation.builder()
+                            .address(Address.builder()
+                                    .latitude(x.getAddress().getLatitude())
+                                    .longitude(x.getAddress().getLongitude())
+                                    .build())
+                            .startTime(x.getStartTime())
+                            .endTime(x.getEndTime())
+                            .onlineLink(x.getOnlineLink())
+                            .build())
+                    .toList();
+            Event icomeEvent = Event.builder()
+                    .title(dto.getTitle())
+                    .dates(edl)
+                    .description(dto.getDescription())
+                    .build();
+            for (Event fatchedEvent : fetchedEvents) {
+                if (icomeEvent.equals(fatchedEvent)) {
+                    throw new IllegalArgumentException("Event already exist");
+                }
+            }
+        }
+    }
+
     List<EventDateLocation> convertLocationList(EventUpdateDtoRequest eventUpdate, Event event){
         List<EventDateLocation> eventDateLocationList = new ArrayList<>();
         for (EventDateLocationDtoRequest e : eventUpdate.getDates()) {
@@ -175,7 +204,7 @@ public class EventServiceImpl implements EventService {
                 .toList();
     }
 
-    private NotificationDto prepareNotificationFromEvent(Event event) {
+    private static NotificationDto prepareNotificationFromEvent(Event event) {
         String datesTable = """
                 <table>
                     <thead>
@@ -226,7 +255,7 @@ public class EventServiceImpl implements EventService {
 
         return NotificationDto.builder()
                 .body(emailContent)
-                .title(String.format("Event \"%s...\" created", event.getTitle().substring(0, 15)))
+                .title(String.format("Event \"%s...\" created", event.getTitle()))
                 .build();
     }
 }
