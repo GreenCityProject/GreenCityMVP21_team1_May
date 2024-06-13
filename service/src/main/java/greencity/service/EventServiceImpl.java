@@ -89,6 +89,24 @@ public class EventServiceImpl implements EventService {
         return modelMapper.map(event, EventCreateDtoResponse.class);
     }
 
+    /**
+     * Deletes an event with the specified eventId and name.
+     *
+     * @param eventId The ID of the event to be deleted.
+     * @param email The email of the user who is deleting the event.
+     */
+    @Override
+    public void delete(Long eventId, String email) {
+        UserVO userVO = restClient.findByEmail(email);
+        Event toDelete = eventRepo.findById(eventId).orElseThrow(() -> new NotFoundException(ErrorMessage.EVENT_NOT_FOUND));
+
+        if (toDelete.getOrganizer().getId().equals(userVO.getId()) || userVO.getRole() == Role.ROLE_ADMIN) {
+            eventRepo.delete(toDelete);
+        } else {
+            throw new UserHasNoPermissionToAccessException(ErrorMessage.USER_HAS_NO_PERMISSION);
+        }
+    }
+
     private static void checkIfEventExistsOrElseThrow(EventCreateDtoRequest dto, List<Event> fetchedEvents) {
         if (!fetchedEvents.isEmpty()) {
             List<EventDateLocation> edl = dto.getDates().stream()
@@ -194,23 +212,5 @@ public class EventServiceImpl implements EventService {
                 .body(emailContent)
                 .title(String.format("Event \"%s...\" created", event.getTitle()))
                 .build();
-    }
-
-    /**
-     * Deletes an event with the specified eventId and name.
-     *
-     * @param eventId The ID of the event to be deleted.
-     * @param email The email of the user who is deleting the event.
-     */
-    @Override
-    public void delete(Long eventId, String email) {
-        UserVO userVO = restClient.findByEmail(email);
-        Event toDelete = eventRepo.findById(eventId).orElseThrow(() -> new NotFoundException(ErrorMessage.EVENT_NOT_FOUND));
-
-        if (toDelete.getOrganizer().getId().equals(userVO.getId()) || userVO.getRole() == Role.ROLE_ADMIN) {
-            eventRepo.delete(toDelete);
-        } else {
-            throw new UserHasNoPermissionToAccessException(ErrorMessage.USER_HAS_NO_PERMISSION);
-        }
     }
 }
