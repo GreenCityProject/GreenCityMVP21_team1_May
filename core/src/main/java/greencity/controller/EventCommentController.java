@@ -94,4 +94,25 @@ public class EventCommentController {
     public ResponseEntity<EventCommentDtoResponse> getCommentById(@PathVariable Long commentId) {
         return ResponseEntity.status(HttpStatus.OK).body(eventCommentService.findCommentById(commentId));
     }
+
+
+    /**
+     * Method for getting amount of comments for event.
+     *
+     * @param eventId id of event to count comments .
+     * @return Integer number of comments
+     *
+     * @author Dmytro Fedotov
+     */
+    @Operation(summary = "Get amount of comments for event")
+    @ResponseStatus(value = HttpStatus.OK)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = HttpStatuses.OK,
+                    content = @Content(schema = @Schema(implementation = EventCommentDtoResponse.class))),
+            @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
+    })
+    @GetMapping("/{eventId}/comments/count")
+    public ResponseEntity<Integer> getCommentsCountByEventId(@PathVariable Long eventId) {
+        return ResponseEntity.status(HttpStatus.OK).body(eventCommentService.getCommentsCountByEventId(eventId));
+    }
 }

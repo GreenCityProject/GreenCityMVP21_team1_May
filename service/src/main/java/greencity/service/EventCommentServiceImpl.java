@@ -58,7 +58,7 @@ public class EventCommentServiceImpl implements EventCommentService{
     public List<EventCommentDtoResponse> getAllByEventId(Long eventId) {
         Optional<Event> event = eventRepo.findById(eventId);
         if (event.isPresent()){
-            List<EventComment> eventComments = this.eventCommentRepo.findAllByEventId(eventId);
+            List<EventComment> eventComments = this.eventCommentRepo.findAllByEventIdOrderByCreatedDateDesc(eventId);
             return eventComments.stream()
                     .map(e -> modelMapper.map(e, EventCommentDtoResponse.class))
                     .toList();
@@ -69,6 +69,14 @@ public class EventCommentServiceImpl implements EventCommentService{
     public EventCommentDtoResponse findCommentById(Long commentId) {
         EventComment eventComment = this.eventCommentRepo.findById(commentId).orElseThrow(() -> new NotFoundException("Comment not found"));
         return modelMapper.map(eventComment, EventCommentDtoResponse.class);
+    }
+
+    @Override
+    public Integer getCommentsCountByEventId(Long eventId) {
+        Optional<Event> event = eventRepo.findById(eventId);
+        if (event.isPresent()){
+            return eventCommentRepo.countByEventId(eventId);
+        } else throw new NotFoundException("Event not found");
     }
 
 

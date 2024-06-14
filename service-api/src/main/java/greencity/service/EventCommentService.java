@@ -12,4 +12,6 @@ public interface EventCommentService {
     List<EventCommentDtoResponse> getAllByEventId(Long eventId);
 
     EventCommentDtoResponse findCommentById(Long commentId);
+
+    Integer getCommentsCountByEventId(Long eventId);
 }

@@ -9,5 +9,7 @@ import java.util.List;
 
 @Repository
 public interface EventCommentRepo extends JpaRepository<EventComment, Long> {
-    List<EventComment> findAllByEventId(Long eventId);
+    List<EventComment> findAllByEventIdOrderByCreatedDateDesc(Long eventId);
+
+    Integer countByEventId(Long eventId);
 }
