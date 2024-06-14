@@ -12,7 +12,7 @@ public interface NotificationRepo extends JpaRepository<Notification, Long> {
 
     Optional<Notification> findById(Long id);
 
-    @Query(nativeQuery = true, value = "SELECT * FROM notifications WHERE user_id = :userId AND is_read = false ORDER BY created_at DESC LIMIT 3")
+    @Query(nativeQuery = true, value = "SELECT * FROM notifications WHERE user_id = :userId AND is_read = false ORDER BY created_at DESC")
     List<Notification> getThreeLastUnreadNotificationsForUser(@Param("userId") Long id);
 
     List<Notification> findAllByUser_IdOrderByCreatedAtDesc(Long id);

@@ -58,6 +58,7 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
         return notificationRepo.getThreeLastUnreadNotificationsForUser(userId).stream()
+                .limit(3)
                 .map(notificationMapper::convert)
                 .toList();
     }
@@ -113,6 +114,9 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public List<NotificationDto> markAllAsRead(Long userId) {
+        if (!userRepo.existsById(userId)) {
+            throw new NotFoundException(ErrorMessage.USER_NOT_FOUND_BY_ID + userId);
+        }
         List<Notification> notifications = notificationRepo.findAllUnreadForUser(userId);
         if (notifications.isEmpty()) {
             throw new NotFoundException("User with id " + userId + " does not have any unread notifications");
