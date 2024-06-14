@@ -10,6 +10,7 @@ import greencity.exception.exceptions.BadRequestException;
 import greencity.exception.exceptions.NotFoundException;
 import greencity.repository.EventCommentRepo;
 import greencity.repository.EventRepo;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -29,8 +30,10 @@ public class EventCommentServiceImpl implements EventCommentService{
     ModelMapper modelMapper = new ModelMapper();
 
     @Override
+    @Transactional
     public EventCommentDtoResponse save(Long eventId, AddEventCommentDtoRequest request, UserVO user) {
         Event event = eventRepo.findById(eventId).orElseThrow(() -> new NotFoundException("Event not found"));
+        // todo builder
         EventComment eventComment = new EventComment();
         eventComment.setText(request.getText());
         eventComment.setAuthor(modelMapper.map(user, User.class));
@@ -39,22 +42,23 @@ public class EventCommentServiceImpl implements EventCommentService{
 
         Long repliedTo = request.getRepliedTo();
         if (repliedTo != null && repliedTo != 0) {
-            Optional<EventComment> repliedToComment = eventCommentRepo.findById(repliedTo);
-            if (repliedToComment.isPresent()) {
-                Optional<Event> eventOfRepliedComment = eventRepo.findById(repliedToComment.get().getEvent().getId());
-                if (eventOfRepliedComment.isPresent()) {
-                    if(eventOfRepliedComment.get().getId().equals(event.getId())){
-                        eventComment.setRepliedTo(repliedToComment.get());
-                    } else throw new BadRequestException("You trying to reply to a comment for another event");
-                }
-            } else throw new NotFoundException("You trying to reply to a not found comment: " + repliedTo);
+            EventComment repliedToComment = eventCommentRepo.findById(repliedTo).orElseThrow(() -> new NotFoundException("You trying to reply to a not found comment: " + repliedTo));
+            if(repliedToComment.getRepliedTo() != null){
+                throw new BadRequestException("You can't reply on reply");
+            }
+            Optional<Event> eventOfRepliedComment = eventRepo.findById(repliedToComment.getEvent().getId());
+            if (eventOfRepliedComment.isPresent()) {
+                if (eventOfRepliedComment.get().getId().equals(event.getId())) {
+                    eventComment.setRepliedTo(repliedToComment);
+                } else throw new BadRequestException("You trying to reply to a comment for another event");
+            }
         }
-
 
         return modelMapper.map(eventCommentRepo.save(eventComment), EventCommentDtoResponse.class);
     }
 
     @Override
+    @Transactional
     public List<EventCommentDtoResponse> getAllByEventId(Long eventId) {
         Optional<Event> event = eventRepo.findById(eventId);
         if (event.isPresent()){
@@ -66,12 +70,14 @@ public class EventCommentServiceImpl implements EventCommentService{
     }
 
     @Override
+    @Transactional
     public EventCommentDtoResponse findCommentById(Long commentId) {
         EventComment eventComment = this.eventCommentRepo.findById(commentId).orElseThrow(() -> new NotFoundException("Comment not found"));
         return modelMapper.map(eventComment, EventCommentDtoResponse.class);
     }
 
     @Override
+    @Transactional
     public Integer getCommentsCountByEventId(Long eventId) {
         Optional<Event> event = eventRepo.findById(eventId);
         if (event.isPresent()){
