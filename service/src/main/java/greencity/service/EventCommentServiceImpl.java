@@ -46,21 +46,23 @@ public class EventCommentServiceImpl implements EventCommentService{
 
         Long repliedTo = request.getRepliedTo();
         if (repliedTo != null && repliedTo != 0) {
-            EventComment repliedToComment = eventCommentRepo.findById(repliedTo).orElseThrow(() -> new NotFoundException("You trying to reply to a not found comment: " + repliedTo));
-            if(repliedToComment.getRepliedTo() != null){
-                throw new BadRequestException("You can't reply on reply");
-            }
-            Optional<Event> eventOfRepliedComment = eventRepo.findById(repliedToComment.getEvent().getId());
-            if (eventOfRepliedComment.isPresent()) {
-                if (eventOfRepliedComment.get().getId().equals(event.getId())) {
-                    eventComment.setRepliedTo(repliedToComment);
-                } else throw new BadRequestException("You trying to reply to a comment for another event");
-            }
+            setReply(repliedTo, eventComment, event);
         }
 
-        // todo: reply on yourself
-
         return modelMapper.map(eventCommentRepo.save(eventComment), EventCommentDtoResponse.class);
+    }
+
+    public void setReply(Long repliedTo, EventComment eventComment, Event event){
+        EventComment repliedToComment = eventCommentRepo.findById(repliedTo).orElseThrow(() -> new NotFoundException("You trying to reply to a not found comment: " + repliedTo));
+        if(repliedToComment.getRepliedTo() != null){
+            throw new BadRequestException("You can't reply on reply");
+        }
+        Optional<Event> eventOfRepliedComment = eventRepo.findById(repliedToComment.getEvent().getId());
+        if (eventOfRepliedComment.isPresent()) {
+            if (eventOfRepliedComment.get().getId().equals(event.getId())) {
+                eventComment.setRepliedTo(repliedToComment);
+            } else throw new BadRequestException("You trying to reply to a comment for another event");
+        }
     }
 
     @Override
@@ -98,31 +100,29 @@ public class EventCommentServiceImpl implements EventCommentService{
         EventComment eventComment = eventCommentRepo.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException("Event comment not found with id: " + request.getId()));
 
-        if (!eventComment.getAuthor().getId().equals(user.getId()))
-            throw new BadRequestException("You are not allowed to update other people's comments");
-
-        if(!eventComment.getEvent().getId().equals(eventId))
-            throw new BadRequestException("Wrong event id");
+        checkEventCommentCommonMistakes(eventId, request, user, eventComment);
 
         Long repliedTo = request.getRepliedTo();
         if(repliedTo == 0){
             eventComment.setRepliedTo(null);
         }
-        if ((eventComment.getRepliedTo() == null || !eventComment.getRepliedTo().getId().equals(repliedTo)) && repliedTo != null && repliedTo != 0) {
-            EventComment repliedToComment = eventCommentRepo.findById(repliedTo).orElseThrow(() -> new NotFoundException("You trying to reply to a not found comment: " + repliedTo));
-            if (repliedToComment.getRepliedTo() != null) {
-                throw new BadRequestException("You can't reply on reply");
-            }
-            Optional<Event> eventOfRepliedComment = eventRepo.findById(repliedToComment.getEvent().getId());
-            if (eventOfRepliedComment.isPresent()) {
-                if (eventOfRepliedComment.get().getId().equals(event.getId())) {
-                    eventComment.setRepliedTo(repliedToComment);
-                } else throw new BadRequestException("You trying to reply to a comment for another event");
-            }
+        if ((eventComment.getRepliedTo() == null || !eventComment.getRepliedTo().getId().equals(repliedTo)) && repliedTo != 0) {
+            setReply(repliedTo, eventComment, event);
         }
 
         eventComment.setText(request.getText());
 
         return modelMapper.map(eventCommentRepo.save(eventComment), EventCommentDtoResponse.class);
+    }
+
+    public void checkEventCommentCommonMistakes(Long eventId, UpdateEventCommentDtoRequest request, UserVO user, EventComment eventComment){
+        if(request.getRepliedTo().equals(request.getId()))
+            throw new BadRequestException("You can't reply on this comment");
+
+        if (!eventComment.getAuthor().getId().equals(user.getId()))
+            throw new BadRequestException("You are not allowed to update other people's comments");
+
+        if(!eventComment.getEvent().getId().equals(eventId))
+            throw new BadRequestException("Wrong event id");
     }
 }
