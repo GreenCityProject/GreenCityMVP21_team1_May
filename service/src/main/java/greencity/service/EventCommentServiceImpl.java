@@ -29,11 +29,13 @@ public class EventCommentServiceImpl implements EventCommentService{
 
     ModelMapper modelMapper = new ModelMapper();
 
+    private static final String EVENT_NOT_FOUND = "Event not found";
+
     @Override
     @Transactional
     public EventCommentDtoResponse save(Long eventId, AddEventCommentDtoRequest request, UserVO user) {
-        Event event = eventRepo.findById(eventId).orElseThrow(() -> new NotFoundException("Event not found"));
-        // todo builder
+        Event event = eventRepo.findById(eventId).orElseThrow(() -> new NotFoundException(EVENT_NOT_FOUND));
+
         EventComment eventComment = new EventComment();
         eventComment.setText(request.getText());
         eventComment.setAuthor(modelMapper.map(user, User.class));
@@ -66,13 +68,13 @@ public class EventCommentServiceImpl implements EventCommentService{
             return eventComments.stream()
                     .map(e -> modelMapper.map(e, EventCommentDtoResponse.class))
                     .toList();
-        } else throw new NotFoundException("Event not found");
+        } else throw new NotFoundException(EVENT_NOT_FOUND);
     }
 
     @Override
     @Transactional
     public EventCommentDtoResponse findCommentById(Long commentId) {
-        EventComment eventComment = this.eventCommentRepo.findById(commentId).orElseThrow(() -> new NotFoundException("Comment not found"));
+        EventComment eventComment = this.eventCommentRepo.findById(commentId).orElseThrow(() -> new NotFoundException(EVENT_NOT_FOUND));
         return modelMapper.map(eventComment, EventCommentDtoResponse.class);
     }
 
@@ -82,7 +84,7 @@ public class EventCommentServiceImpl implements EventCommentService{
         Optional<Event> event = eventRepo.findById(eventId);
         if (event.isPresent()){
             return eventCommentRepo.countByEventId(eventId);
-        } else throw new NotFoundException("Event not found");
+        } else throw new NotFoundException(EVENT_NOT_FOUND);
     }
 
 
