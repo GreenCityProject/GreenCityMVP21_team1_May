@@ -1,6 +1,5 @@
 package greencity.dto.event;
 
-import greencity.annotations.ValidStartBeforeEndDates;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
@@ -16,7 +15,6 @@ import java.time.LocalDateTime;
 @Setter
 @EqualsAndHashCode
 @ToString
-@ValidStartBeforeEndDates(message = "Start time and date must be before end date")
 public class EventDateLocationDtoRequest {
 
     @NotNull(message = "Start time must not be NULL")

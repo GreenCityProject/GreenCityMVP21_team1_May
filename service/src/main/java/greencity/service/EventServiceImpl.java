@@ -6,7 +6,9 @@ import greencity.dto.event.EventCreateDtoResponse;
 import greencity.dto.event.EventDateLocationDtoRequest;
 import greencity.dto.user.NotificationDto;
 import greencity.entity.*;
+import greencity.exception.exceptions.AlreadyExistException;
 import greencity.repository.EventRepo;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -31,18 +33,13 @@ public class EventServiceImpl implements EventService {
     ModelMapper modelMapper = new ModelMapper();
 
     @Override
+    @Transactional
     public EventCreateDtoResponse create(EventCreateDtoRequest dto, MultipartFile[] images, String principal) {
 
         List<Event> fetchedEvents = eventRepo.findByTitle(dto.getTitle());
         checkIfEventExistsOrElseThrow(dto, fetchedEvents);
 
         var organiser = userService.findByEmail(principal);
-
-        /**
-         * If no @images: titleImage set to empty String, additionalImages set to empty List
-         * If 1 @images:  this image is set to titleImage, additionalImages set to empty List
-         * If >1 @images: first image is set to titleImage, others are set to additionalImages
-         */
         var additionalImagesLinks = getLinksOfImages(images);
         var titleImage = additionalImagesLinks.isEmpty() ? "" : additionalImagesLinks.getFirst().getData();
         var additionalImageList = additionalImagesLinks.size() > 1 ?
@@ -83,28 +80,14 @@ public class EventServiceImpl implements EventService {
         return modelMapper.map(event, EventCreateDtoResponse.class);
     }
 
-    private static void checkIfEventExistsOrElseThrow(EventCreateDtoRequest dto, List<Event> fetchedEvents) {
-        if (!fetchedEvents.isEmpty()) {
-            List<EventDateLocation> edl = dto.getDates().stream()
-                    .map(x -> EventDateLocation.builder()
-                            .address(Address.builder()
-                                    .latitude(x.getAddress().getLatitude())
-                                    .longitude(x.getAddress().getLongitude())
-                                    .build())
-                            .startTime(x.getStartTime())
-                            .endTime(x.getEndTime())
-                            .onlineLink(x.getOnlineLink())
-                            .build())
-                    .toList();
-            Event icomeEvent = Event.builder()
-                    .title(dto.getTitle())
-                    .dates(edl)
-                    .description(dto.getDescription())
-                    .build();
-            for (Event fatchedEvent : fetchedEvents) {
-                if (icomeEvent.equals(fatchedEvent)) {
-                    throw new IllegalArgumentException("Event already exist");
-                }
+    private void checkIfEventExistsOrElseThrow(EventCreateDtoRequest dto, List<Event> fetchedEvents) {
+        if (fetchedEvents.isEmpty()) return;
+
+        Event icomeEvent = modelMapper.map(dto, Event.class);
+
+        for (Event fatchedEvent : fetchedEvents) {
+            if (icomeEvent.equals(fatchedEvent)) {
+                throw new AlreadyExistException(String.format("Event with title '%s' already exist", dto.getTitle()));
             }
         }
     }
@@ -135,7 +118,7 @@ public class EventServiceImpl implements EventService {
                 .toList();
     }
 
-    private static NotificationDto prepareNotificationFromEvent(Event event) {
+    private NotificationDto prepareNotificationFromEvent(Event event) {
         String datesTable = """
                 <table>
                     <thead>

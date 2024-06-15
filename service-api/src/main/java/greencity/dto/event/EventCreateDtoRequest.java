@@ -1,7 +1,7 @@
 package greencity.dto.event;
 
 import greencity.annotations.ValidStringLength;
-import greencity.annotations.ValidUniqueEventDateLocationsDtoRequestList;
+import greencity.annotations.ValidEventDateLocationsDtoRequestList;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -27,7 +27,7 @@ public class EventCreateDtoRequest {
 
     @Valid
     @Size(min = MIN_DATES_COUNT, max = MAX_DATES_COUNT, message = "Must add from 1 to 7 sets of date, time and location parameters")
-    @ValidUniqueEventDateLocationsDtoRequestList(message = "List of dates contains duplicates")
+    @ValidEventDateLocationsDtoRequestList
     private List<EventDateLocationDtoRequest> dates = new ArrayList<>();
 
     @NotNull(message = "Description must not be empty")

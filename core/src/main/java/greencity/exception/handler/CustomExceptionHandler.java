@@ -631,13 +631,27 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exceptionResponse);
     }
 
+    /**
+     * Customize the response for AlreadyExistException. It is a custom exception thrown when entity already exists
+     *
+     * @param ex      the exception
+     * @param request the current request
+     * @return a {@code ResponseEntity} message with response code 409Conflict
+     */
+    @ExceptionHandler(AlreadyExistException.class)
+    public final ResponseEntity<Object> handleAlreadyExistException(
+            AlreadyExistException ex, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(getErrorAttributes(request));
+        log.trace(ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(exceptionResponse);
+    }
+
     @Override
     protected ResponseEntity<Object> handleHandlerMethodValidationException(
             HandlerMethodValidationException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-        var r = ex.getAllErrors().stream().map(MessageSourceResolvable::getDefaultMessage).toList();
         ExceptionResponse exceptionResponse = new ExceptionResponse(getErrorAttributes(request));
-        var m = exceptionResponse.getMessage()+r;
-        exceptionResponse.setMessage(m);
+        var errors = ex.getAllErrors().stream().map(MessageSourceResolvable::getDefaultMessage).toList();
+        exceptionResponse.setMessage(errors.toString());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exceptionResponse);
     }
 
