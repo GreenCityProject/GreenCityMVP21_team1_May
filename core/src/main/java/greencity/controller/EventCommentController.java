@@ -5,6 +5,7 @@ import greencity.annotations.ValidEventCommentRequest;
 import greencity.constant.HttpStatuses;
 import greencity.dto.eventcomment.AddEventCommentDtoRequest;
 import greencity.dto.eventcomment.EventCommentDtoResponse;
+import greencity.dto.eventcomment.UpdateEventCommentDtoRequest;
 import greencity.dto.user.UserVO;
 import greencity.service.EventCommentService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -115,5 +116,31 @@ public class EventCommentController {
     @GetMapping("/{eventId}/comments/count")
     public ResponseEntity<Integer> getCommentsCountByEventId(@PathVariable Long eventId) {
         return ResponseEntity.status(HttpStatus.OK).body(eventCommentService.getCommentsCountByEventId(eventId));
+    }
+
+    /**
+     * Method for editing event comment.
+     *
+     * @param eventId id of event of comment to edit.
+     * @param request dto for EventComment entity.
+     * @return dto {@link EventCommentDtoResponse}
+     * @author Dmytro Fedotov
+     */
+    @Operation(summary = "Edit comment to event")
+    @ResponseStatus(value = HttpStatus.OK)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = HttpStatuses.OK,
+                    content = @Content(schema = @Schema(implementation = EventCommentDtoResponse.class))),
+            @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST),
+            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
+            @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
+    })
+    @PutMapping("/{eventId}/comments/update")
+    public ResponseEntity<EventCommentDtoResponse> update(@PathVariable Long eventId,
+                                                        @Valid @ValidEventCommentRequest @RequestBody UpdateEventCommentDtoRequest request,
+                                                        @Parameter(hidden = true) @CurrentUser UserVO user) {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(eventCommentService.update(eventId, request, user));
     }
 }

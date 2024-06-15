@@ -2,6 +2,7 @@ package greencity.service;
 
 import greencity.dto.eventcomment.AddEventCommentDtoRequest;
 import greencity.dto.eventcomment.EventCommentDtoResponse;
+import greencity.dto.eventcomment.UpdateEventCommentDtoRequest;
 import greencity.dto.user.UserVO;
 import greencity.entity.Event;
 import greencity.entity.EventComment;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -56,6 +58,8 @@ public class EventCommentServiceImpl implements EventCommentService{
             }
         }
 
+        // todo: reply on yourself
+
         return modelMapper.map(eventCommentRepo.save(eventComment), EventCommentDtoResponse.class);
     }
 
@@ -87,5 +91,38 @@ public class EventCommentServiceImpl implements EventCommentService{
         } else throw new NotFoundException(EVENT_NOT_FOUND);
     }
 
+    @Override
+    public EventCommentDtoResponse update(Long eventId, UpdateEventCommentDtoRequest request, UserVO user) {
+        Event event = eventRepo.findById(eventId).orElseThrow(() -> new NotFoundException(EVENT_NOT_FOUND));
 
+        EventComment eventComment = eventCommentRepo.findById(request.getId())
+                .orElseThrow(() -> new NotFoundException("Event comment not found with id: " + request.getId()));
+
+        if (!eventComment.getAuthor().getId().equals(user.getId()))
+            throw new BadRequestException("You are not allowed to update other people's comments");
+
+        if(!eventComment.getEvent().getId().equals(eventId))
+            throw new BadRequestException("Wrong event id");
+
+        Long repliedTo = request.getRepliedTo();
+        if(repliedTo == 0){
+            eventComment.setRepliedTo(null);
+        }
+        if ((eventComment.getRepliedTo() == null || !eventComment.getRepliedTo().getId().equals(repliedTo)) && repliedTo != null && repliedTo != 0) {
+            EventComment repliedToComment = eventCommentRepo.findById(repliedTo).orElseThrow(() -> new NotFoundException("You trying to reply to a not found comment: " + repliedTo));
+            if (repliedToComment.getRepliedTo() != null) {
+                throw new BadRequestException("You can't reply on reply");
+            }
+            Optional<Event> eventOfRepliedComment = eventRepo.findById(repliedToComment.getEvent().getId());
+            if (eventOfRepliedComment.isPresent()) {
+                if (eventOfRepliedComment.get().getId().equals(event.getId())) {
+                    eventComment.setRepliedTo(repliedToComment);
+                } else throw new BadRequestException("You trying to reply to a comment for another event");
+            }
+        }
+
+        eventComment.setText(request.getText());
+
+        return modelMapper.map(eventCommentRepo.save(eventComment), EventCommentDtoResponse.class);
+    }
 }

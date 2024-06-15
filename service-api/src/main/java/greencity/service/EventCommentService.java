@@ -2,6 +2,7 @@ package greencity.service;
 
 import greencity.dto.eventcomment.AddEventCommentDtoRequest;
 import greencity.dto.eventcomment.EventCommentDtoResponse;
+import greencity.dto.eventcomment.UpdateEventCommentDtoRequest;
 import greencity.dto.user.UserVO;
 
 import java.util.List;
@@ -14,4 +15,6 @@ public interface EventCommentService {
     EventCommentDtoResponse findCommentById(Long commentId);
 
     Integer getCommentsCountByEventId(Long eventId);
+
+    EventCommentDtoResponse update(Long eventId, UpdateEventCommentDtoRequest request, UserVO user);
 }
