@@ -23,7 +23,7 @@ public final class SwaggerExampleModel {
             + "  \"source\": \"string\"\n";
 
     private static final String EXAMPLE_FOR_UPDATE_ECO_NEWS =
-            "id\":\"string\",\n" +
+            "\"id\":\"string\",\n" +
                     "\"tags\":[\"string\"],\n" +
                     "\"content\":\"string\",\n" +
                     "\"title\":\"string\",\n" +
@@ -55,7 +55,6 @@ public final class SwaggerExampleModel {
             + IMAGE_DESCRIPTION
             + BEFORE_EXAMPLE
             + "{\n"
-            + "  \"id\": 0,\n"
             + EXAMPLE_FOR_UPDATE_ECO_NEWS
             + "}\n"
             + AFTER_EXAMPLE;
