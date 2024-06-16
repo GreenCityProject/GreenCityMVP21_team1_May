@@ -1,7 +1,6 @@
 package greencity.controller;
 
 import greencity.annotations.CurrentUser;
-import greencity.annotations.ValidEventCommentRequest;
 import greencity.constant.HttpStatuses;
 import greencity.dto.eventcomment.AddEventCommentDtoRequest;
 import greencity.dto.eventcomment.EventCommentDtoResponse;
@@ -47,7 +46,7 @@ public class EventCommentController {
     })
     @PostMapping("/{eventId}/comments/create")
     public ResponseEntity<EventCommentDtoResponse> save(@PathVariable Long eventId,
-                                                        @Valid @ValidEventCommentRequest @RequestBody AddEventCommentDtoRequest request,
+                                                        @Valid @RequestBody AddEventCommentDtoRequest request,
                                                         @Parameter(hidden = true) @CurrentUser UserVO user) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -137,7 +136,7 @@ public class EventCommentController {
     })
     @PutMapping("/{eventId}/comments/update")
     public ResponseEntity<EventCommentDtoResponse> update(@PathVariable Long eventId,
-                                                        @Valid @ValidEventCommentRequest @RequestBody UpdateEventCommentDtoRequest request,
+                                                        @Valid @RequestBody UpdateEventCommentDtoRequest request,
                                                         @Parameter(hidden = true) @CurrentUser UserVO user) {
         return ResponseEntity
                 .status(HttpStatus.OK)
