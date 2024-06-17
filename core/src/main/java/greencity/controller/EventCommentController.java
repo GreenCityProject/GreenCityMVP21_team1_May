@@ -83,7 +83,7 @@ public class EventCommentController {
      *
      * @author Dmytro Fedotov
      */
-    @Operation(summary = "Get comments of event")
+    @Operation(summary = "Get comment by id")
     @ResponseStatus(value = HttpStatus.OK)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = HttpStatuses.OK,

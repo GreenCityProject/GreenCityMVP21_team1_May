@@ -1,5 +1,6 @@
 package greencity.service;
 
+import greencity.client.RestClient;
 import greencity.dto.eventcomment.AddEventCommentDtoRequest;
 import greencity.dto.eventcomment.EventCommentDtoResponse;
 import greencity.dto.eventcomment.UpdateEventCommentDtoRequest;
@@ -21,6 +22,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import static greencity.service.EventServiceImpl.prepareEventNotificationFromComment;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -29,6 +32,8 @@ public class EventCommentServiceImpl implements EventCommentService{
     private final EventCommentRepo eventCommentRepo;
 
     ModelMapper modelMapper = new ModelMapper();
+
+    private final RestClient restClient;
 
     private static final String EVENT_NOT_FOUND = "Event not found";
 
@@ -47,6 +52,8 @@ public class EventCommentServiceImpl implements EventCommentService{
         if (repliedTo != null && repliedTo != 0) {
             setReply(repliedTo, eventComment, event);
         }
+
+        restClient.sendEventCommentNotificationToUser(prepareEventNotificationFromComment(eventComment));
 
         return modelMapper.map(eventCommentRepo.save(eventComment), EventCommentDtoResponse.class);
     }

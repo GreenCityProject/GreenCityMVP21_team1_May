@@ -3,6 +3,7 @@ package greencity.service;
 import greencity.client.RestClient;
 import greencity.constant.ErrorMessage;
 import greencity.dto.event.*;
+import greencity.dto.user.EventCommentNotificationDto;
 import greencity.dto.user.NotificationDto;
 import greencity.dto.user.UserVO;
 import greencity.entity.*;
@@ -84,7 +85,7 @@ public class EventServiceImpl implements EventService {
         event.setDates(eventDateLocationList);
         event = eventRepo.save(event);
 
-        //restClient.sendNotificationToUser(prepareNotificationFromEvent(event), organiser.getEmail());
+        restClient.sendNotificationToUser(prepareNotificationFromEvent(event), organiser.getEmail());
 
         return modelMapper.map(event, EventCreateDtoResponse.class);
     }
@@ -257,5 +258,29 @@ public class EventServiceImpl implements EventService {
                 .body(emailContent)
                 .title(String.format("Event \"%s...\" created", event.getTitle()))
                 .build();
+    }
+
+    public static EventCommentNotificationDto prepareEventNotificationFromComment(EventComment eventComment) {
+        return EventCommentNotificationDto.builder()
+                .authorEmail(eventComment.getEvent().getOrganizer().getEmail())
+                .authorName(eventComment.getEvent().getOrganizer().getName())
+                .eventTitle(eventComment.getEvent().getTitle())
+                .commentAuthor(eventComment.getAuthor().getName())
+                .commentShortText(getShortText(eventComment.getText()))
+                .commentDate(eventComment.getCreatedDate())
+                .commentLink("http://localhost:8080/event/" + eventComment.getEvent().getId() + "/comments")
+                .build();
+    }
+
+    public static String getShortText(String text) {
+        if (text.length() > 300) {
+            int cutOffIndex = text.lastIndexOf(' ', 300);
+            if (cutOffIndex == -1) {
+                cutOffIndex = 300;
+            }
+            return text.substring(0, cutOffIndex) + "...";
+        } else {
+            return text;
+        }
     }
 }

@@ -475,6 +475,24 @@ public class RestClient {
             );
     }
 
+    public void sendEventCommentNotificationToUser(EventCommentNotificationDto notification) {
+        String url = greenCityUserServerAddress + "/email/notification/comment";
+
+        HttpHeaders headers = setHeader();
+        headers.set("Content-Type", "application/json");
+
+        System.out.println(notification);
+
+        HttpEntity<EventCommentNotificationDto> request = new HttpEntity<>(notification, headers);
+
+        restTemplate.exchange(
+                url,
+                HttpMethod.POST,
+                request,
+                String.class
+        );
+    }
+
     /**
      * Method makes headers for RestTemplate.
      *
