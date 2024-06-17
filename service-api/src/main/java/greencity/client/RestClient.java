@@ -11,11 +11,14 @@ import greencity.message.SendHabitNotification;
 import greencity.message.SendReportEmailMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.*;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -30,6 +33,7 @@ import static greencity.constant.AppConstant.AUTHORIZATION;
 @RequiredArgsConstructor
 @Component
 public class RestClient {
+    private static final Logger log = LoggerFactory.getLogger(RestClient.class);
     private final RestTemplate restTemplate;
     @Setter
     @Value("${greencityuser.server.address}")
@@ -480,8 +484,6 @@ public class RestClient {
 
         HttpHeaders headers = setHeader();
         headers.set("Content-Type", "application/json");
-
-        System.out.println(notification);
 
         HttpEntity<EventCommentNotificationDto> request = new HttpEntity<>(notification, headers);
 

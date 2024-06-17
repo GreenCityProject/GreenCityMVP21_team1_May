@@ -117,6 +117,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, ECONEWS_COMMENTS)
                         .hasAnyRole(ADMIN)
                         .requestMatchers(HttpMethod.GET,
+                                "/event/{eventId}/comments",
                                 "/event/{eventId}/comments/count",
                                 "/ownSecurity/verifyEmail",
                                 "/ownSecurity/updateAccessToken",
