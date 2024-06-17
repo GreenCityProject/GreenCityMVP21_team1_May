@@ -454,6 +454,28 @@ public class RestClient {
     }
 
     /**
+     * Method that allow you to send notification on email
+     * {@link NotificationDto}.
+     *
+     * @param email
+     */
+    public void sendNotificationToUser(NotificationDto notification, String email) {
+        String url = greenCityUserServerAddress + "/email/notification?email=" + email;
+
+        HttpHeaders headers = setHeader();
+        headers.set("Content-Type", "application/json");
+
+        HttpEntity<NotificationDto> request = new HttpEntity<>(notification, headers);
+
+            restTemplate.exchange(
+                    url,
+                    HttpMethod.POST,
+                    request,
+                    String.class
+            );
+    }
+
+    /**
      * Method makes headers for RestTemplate.
      *
      * @return {@link HttpEntity}
