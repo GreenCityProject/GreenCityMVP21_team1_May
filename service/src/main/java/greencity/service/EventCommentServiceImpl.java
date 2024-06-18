@@ -18,8 +18,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 import static greencity.service.EventServiceImpl.prepareEventNotificationFromComment;
@@ -100,13 +103,13 @@ public class EventCommentServiceImpl implements EventCommentService{
     }
 
     @Override
-    public EventCommentDtoResponse update(Long eventId, UpdateEventCommentDtoRequest request, UserVO user) {
-        Event event = eventRepo.findById(eventId).orElseThrow(() -> new NotFoundException(EVENT_NOT_FOUND));
-
+    public EventCommentDtoResponse update(UpdateEventCommentDtoRequest request, UserVO user) {
         EventComment eventComment = eventCommentRepo.findById(request.getId())
                 .orElseThrow(() -> new NotFoundException("Event comment not found with id: " + request.getId()));
 
-        checkEventCommentCommonMistakes(eventId, request, user, eventComment);
+        Event event = eventComment.getEvent();
+
+        checkEventCommentCommonMistakes(request, user, eventComment);
 
         Long repliedTo = request.getRepliedTo();
         if(repliedTo == 0){
@@ -121,14 +124,23 @@ public class EventCommentServiceImpl implements EventCommentService{
         return modelMapper.map(eventCommentRepo.save(eventComment), EventCommentDtoResponse.class);
     }
 
-    public void checkEventCommentCommonMistakes(Long eventId, UpdateEventCommentDtoRequest request, UserVO user, EventComment eventComment){
+    @Override
+    public String isEdited(Long commentId, UserVO user) {
+        EventComment eventComment = eventCommentRepo.findById(commentId)
+                .orElseThrow(() -> new NotFoundException("Event comment not found with id: " + commentId));
+
+        if(!eventComment.getCreatedDate().equals(eventComment.getModifiedDate())){
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy", Locale.ENGLISH);
+            String formattedDate = eventComment.getModifiedDate().format(formatter);
+            return "Edited " + formattedDate;
+        } else return "";
+    }
+
+    public void checkEventCommentCommonMistakes(UpdateEventCommentDtoRequest request, UserVO user, EventComment eventComment){
         if(request.getRepliedTo().equals(request.getId()))
             throw new BadRequestException("You can't reply on this comment");
 
         if (!eventComment.getAuthor().getId().equals(user.getId()))
             throw new BadRequestException("You are not allowed to update other people's comments");
-
-        if(!eventComment.getEvent().getId().equals(eventId))
-            throw new BadRequestException("Wrong event id");
     }
 }

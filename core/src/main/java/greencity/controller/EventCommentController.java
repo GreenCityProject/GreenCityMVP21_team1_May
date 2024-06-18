@@ -120,7 +120,6 @@ public class EventCommentController {
     /**
      * Method for editing event comment.
      *
-     * @param eventId id of event of comment to edit.
      * @param request dto for EventComment entity.
      * @return dto {@link EventCommentDtoResponse}
      * @author Dmytro Fedotov
@@ -134,12 +133,35 @@ public class EventCommentController {
             @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
             @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
     })
-    @PutMapping("/{eventId}/comments/update")
-    public ResponseEntity<EventCommentDtoResponse> update(@PathVariable Long eventId,
-                                                        @Valid @RequestBody UpdateEventCommentDtoRequest request,
+    @PutMapping("/comments/update")
+    public ResponseEntity<EventCommentDtoResponse> update(@Valid @RequestBody UpdateEventCommentDtoRequest request,
                                                         @Parameter(hidden = true) @CurrentUser UserVO user) {
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(eventCommentService.update(eventId, request, user));
+                .body(eventCommentService.update(request, user));
+    }
+
+    /**
+     * Method to check if comment is edited.
+     *
+     * @param commentId id of event EventComment entity.
+     * @return date and "edited" label or nothing {@link String}
+     * @author Dmytro Fedotov
+     */
+    @Operation(summary = "Check if comment is edited")
+    @ResponseStatus(value = HttpStatus.OK)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = HttpStatuses.OK,
+                    content = @Content(schema = @Schema(implementation = EventCommentDtoResponse.class))),
+            @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST),
+            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
+            @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
+    })
+    @GetMapping("/comments/{commentId}/is-edited")
+    public ResponseEntity<String> checkEdited(@PathVariable Long commentId,
+                                                          @Parameter(hidden = true) @CurrentUser UserVO user) {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(eventCommentService.isEdited(commentId, user));
     }
 }

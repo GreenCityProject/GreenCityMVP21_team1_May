@@ -16,5 +16,7 @@ public interface EventCommentService {
 
     Integer getCommentsCountByEventId(Long eventId);
 
-    EventCommentDtoResponse update(Long eventId, UpdateEventCommentDtoRequest request, UserVO user);
+    EventCommentDtoResponse update(UpdateEventCommentDtoRequest request, UserVO user);
+
+    String isEdited(Long commentId, UserVO user);
 }
