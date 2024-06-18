@@ -8,6 +8,7 @@ import greencity.entity.User;
 import greencity.enums.NotificationSections;
 import greencity.exception.exceptions.BadRequestException;
 import greencity.exception.exceptions.NotFoundException;
+import greencity.exception.exceptions.UserHasNoPermissionToAccessException;
 import greencity.mapping.CreateNotificationDtoMapper;
 import greencity.mapping.NotificationDtoMapper;
 import greencity.repository.NotificationRepo;
@@ -126,7 +127,7 @@ public class NotificationServiceImpl implements NotificationService {
                 .toList();
     }
 
-        @Override
+    @Override
     public NotificationDto markAsRead(Long notificationId) {
         return notificationRepo.findById(notificationId)
                 .map(notification -> {
@@ -135,5 +136,19 @@ public class NotificationServiceImpl implements NotificationService {
                     return notificationMapper.convert(savedNotification);
                 })
                 .orElseThrow(() -> new NotFoundException("Notification with id " + notificationId + " not found"));
+    }
+
+    @Override
+    public void deleteById(Long notificationId, Long userId) {
+        if (!notificationRepo.existsById(notificationId)) {
+            throw new NotFoundException("Notification with id " + notificationId + " not found");
+        }
+
+        Notification notification = notificationRepo.findByIdAndUser_Id(notificationId, userId);
+        if (notification == null) {
+            throw new UserHasNoPermissionToAccessException("Notification with id " + notificationId + " does not belong to user with id " + userId);
+        }
+
+        notificationRepo.deleteById(notificationId);
     }
 }

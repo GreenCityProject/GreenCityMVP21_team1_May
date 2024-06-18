@@ -27,5 +27,10 @@ public interface NotificationRepo extends JpaRepository<Notification, Long> {
     @Query(nativeQuery = true, value = "SELECT COUNT(*) FROM notifications WHERE user_id = :userId AND is_read = false")
     Long getAmountOfUnreadNotificationsByUserId(@Param("userId") Long id);
 
-
+    /***
+     * Method that allow you to delete notification by id.
+     *
+     * @param notificationId a value of {@link Long}
+     */
+    void deleteById(Long notificationId);
 }
