@@ -56,7 +56,9 @@ public class EventCommentServiceImpl implements EventCommentService{
             setReply(repliedTo, eventComment, event);
         }
 
-        restClient.sendEventCommentNotificationToUser(prepareEventNotificationFromComment(eventComment));
+        if(!event.getOrganizer().getId().equals(user.getId())){
+            restClient.sendEventCommentNotificationToUser(prepareEventNotificationFromComment(eventComment));
+        }
 
         return modelMapper.map(eventCommentRepo.save(eventComment), EventCommentDtoResponse.class);
     }
