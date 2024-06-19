@@ -56,12 +56,11 @@ class RatingCalculationTest {
             .createDate(now)
             .pointsChanged(rating.getRatingPoints())
             .build();
-        String accessToken = "token";
         when(modelMapper.map(userVO, User.class)).thenReturn(user);
-        doNothing().when(restClient).save(userVO, accessToken);
+        doNothing().when(restClient).save(userVO);
         when(modelMapper.map(ratingStatistics, RatingStatisticsVO.class)).thenReturn(ratingStatisticsVO);
         when(ratingStatisticsService.save(ratingStatisticsVO)).thenReturn(ratingStatisticsVO);
-        ratingCalculation.ratingCalculation(RatingCalculationEnum.ADD_COMMENT, userVO, accessToken);
+        ratingCalculation.ratingCalculation(RatingCalculationEnum.ADD_COMMENT, userVO);
         verify(ratingStatisticsService).save(ratingStatisticsVO);
 
     }

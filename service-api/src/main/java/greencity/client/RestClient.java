@@ -19,13 +19,10 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import static greencity.constant.AppConstant.AUTHORIZATION;
 
 @RequiredArgsConstructor
 @Component
@@ -34,7 +31,6 @@ public class RestClient {
     @Setter
     @Value("${greencityuser.server.address}")
     private String greenCityUserServerAddress;
-    private final HttpServletRequest httpServletRequest;
 
     /**
      * Method for getting all users by their {@link EmailNotification}.
@@ -60,7 +56,7 @@ public class RestClient {
      * @author Taras Kavkalo
      */
     public List<String> findAllUsersCities() {
-        HttpEntity<String> entity = new HttpEntity<>(setHeader());
+        HttpEntity<String> entity = new HttpEntity<>(new HttpHeaders());
         ResponseEntity<List<String>> exchange = restTemplate.exchange(greenCityUserServerAddress
             + RestTemplateLinks.FIND_ALL_USERS_CITIES,
             HttpMethod.GET, entity, new ParameterizedTypeReference<>() {
@@ -75,7 +71,7 @@ public class RestClient {
      * @author Taras Kavkalo
      */
     public Map<Integer, Long> findAllRegistrationMonthsMap() {
-        HttpEntity<String> entity = new HttpEntity<>(setHeader());
+        HttpEntity<String> entity = new HttpEntity<>(new HttpHeaders());
         ResponseEntity<Map<Integer, Long>> exchange = restTemplate.exchange(greenCityUserServerAddress
             + RestTemplateLinks.FIND_ALL_REGISTRATION_MONTHS_MAP,
             HttpMethod.GET, entity, new ParameterizedTypeReference<>() {
@@ -90,7 +86,7 @@ public class RestClient {
      * @author Orest Mamchuk
      */
     public UserVO findByEmail(String email) {
-        HttpEntity<String> entity = new HttpEntity<>(setHeader());
+        HttpEntity<String> entity = new HttpEntity<>(new HttpHeaders());
         UriComponentsBuilder url = UriComponentsBuilder.fromHttpUrl(greenCityUserServerAddress
             + RestTemplateLinks.USER_FIND_BY_EMAIL).queryParam("email", email);
         return restTemplate.exchange(url.toUriString(), HttpMethod.GET,
@@ -105,7 +101,7 @@ public class RestClient {
      * @author Orest Mamchuk
      */
     public UserVO findById(Long id) {
-        HttpEntity<String> entity = new HttpEntity<>(setHeader());
+        HttpEntity<String> entity = new HttpEntity<>(new HttpHeaders());
         return restTemplate.exchange(greenCityUserServerAddress
             + RestTemplateLinks.USER_FIND_BY_ID + RestTemplateLinks.ID + id, HttpMethod.GET, entity, UserVO.class)
             .getBody();
@@ -120,13 +116,13 @@ public class RestClient {
      */
     public PageableAdvancedDto<UserManagementDto> findUserForManagementByPage(Pageable pageable) {
         Sort sort = pageable.getSort();
-        StringBuilder orderUrl = new StringBuilder("");
+        StringBuilder orderUrl = new StringBuilder();
         if (!sort.isEmpty()) {
             for (Sort.Order order : sort) {
-                orderUrl.append(orderUrl.toString() + order.getProperty() + "," + order.getDirection());
+                orderUrl.append(orderUrl).append(order.getProperty()).append(",").append(order.getDirection());
             }
         }
-        HttpEntity<String> entity = new HttpEntity<>(setHeader());
+        HttpEntity<String> entity = new HttpEntity<>(new HttpHeaders());
         return restTemplate.exchange(greenCityUserServerAddress
             + RestTemplateLinks.USER_FIND_USER_FOR_MANAGEMENT + RestTemplateLinks.PAGE + pageable
                 .getPageNumber()
@@ -147,7 +143,7 @@ public class RestClient {
      * @author Orest Mamchuk
      */
     public PageableAdvancedDto<UserManagementDto> searchBy(Pageable pageable, String query) {
-        HttpEntity<String> entity = new HttpEntity<>(setHeader());
+        HttpEntity<String> entity = new HttpEntity<>(new HttpHeaders());
         UriComponentsBuilder url = UriComponentsBuilder.fromHttpUrl(greenCityUserServerAddress
             + RestTemplateLinks.SEARCH_BY)
             .queryParam("page", pageable.getPageNumber())
@@ -166,7 +162,7 @@ public class RestClient {
      */
     public void updateUser(UserManagementDto userDto) {
         UserManagementUpdateDto updateDto = managementDtoToUpdateDto(userDto);
-        HttpHeaders headers = setHeader();
+        HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<UserManagementUpdateDto> entity = new HttpEntity<>(updateDto, headers);
         restTemplate.exchange(greenCityUserServerAddress
@@ -192,7 +188,7 @@ public class RestClient {
     public void updateRole(Long id, Role role) {
         String url = greenCityUserServerAddress
             + RestTemplateLinks.USER + "/" + id + "/role";
-        HttpHeaders headers = setHeader();
+        HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         UserRoleDto userRoleDto = new UserRoleDto(role);
         HttpEntity<UserRoleDto> entity = new HttpEntity<>(userRoleDto, headers);
@@ -206,7 +202,7 @@ public class RestClient {
      * @author Orest Mamchuk
      */
     public List<UserVO> findAll() {
-        HttpEntity<String> entity = new HttpEntity<>(setHeader());
+        HttpEntity<String> entity = new HttpEntity<>(new HttpHeaders());
         ResponseEntity<UserVO[]> exchange = restTemplate.exchange(greenCityUserServerAddress
             + RestTemplateLinks.USER_FIND_ALL, HttpMethod.GET, entity, UserVO[].class);
         UserVO[] responseDtos = exchange.getBody();
@@ -222,7 +218,7 @@ public class RestClient {
      * @author Orest Mamchuk
      */
     public Optional<UserVO> findNotDeactivatedByEmail(String email) {
-        HttpEntity<String> entity = new HttpEntity<>(setHeader());
+        HttpEntity<String> entity = new HttpEntity<>(new HttpHeaders());
         UserVO body = restTemplate.exchange(greenCityUserServerAddress
             + RestTemplateLinks.USER_FIND_NOT_DEACTIVATED_BY_EMAIL + RestTemplateLinks.EMAIL
             + email, HttpMethod.GET, entity, UserVO.class)
@@ -238,7 +234,7 @@ public class RestClient {
      * @author Orest Mamchuk
      */
     public Long findIdByEmail(String email) {
-        HttpEntity<String> entity = new HttpEntity<>(setHeader());
+        HttpEntity<String> entity = new HttpEntity<>(new HttpHeaders());
         UriComponentsBuilder url = UriComponentsBuilder.fromHttpUrl(greenCityUserServerAddress
             + RestTemplateLinks.USER_FIND_ID_BY_EMAIL).queryParam("email", email);
         return restTemplate.exchange(url.toUriString(), HttpMethod.GET, entity, Long.class).getBody();
@@ -253,7 +249,7 @@ public class RestClient {
      * @author Orest Mamchuk
      */
     public void deactivateUser(Long userId, List<String> userReasons) {
-        HttpHeaders headers = setHeader();
+        HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<List<String>> entity = new HttpEntity<>(userReasons, headers);
         restTemplate.exchange(greenCityUserServerAddress + RestTemplateLinks.USER_DEACTIVATE
@@ -268,7 +264,7 @@ public class RestClient {
      * @author Vlad Pikhotskyi
      */
     public String getUserLang(Long userId) {
-        HttpEntity<String> entity = new HttpEntity<>(setHeader());
+        HttpEntity<String> entity = new HttpEntity<>(new HttpHeaders());
         String body = restTemplate.exchange(greenCityUserServerAddress + RestTemplateLinks.USER_LANG
             + RestTemplateLinks.ID + userId, HttpMethod.GET, entity, String.class).getBody();
         assert body != null;
@@ -282,7 +278,7 @@ public class RestClient {
      * @author Orest Mamchuk
      */
     public void setActivatedStatus(Long userId) {
-        HttpEntity<String> entity = new HttpEntity<>(setHeader());
+        HttpEntity<String> entity = new HttpEntity<>(new HttpHeaders());
         restTemplate.exchange(greenCityUserServerAddress + RestTemplateLinks.USER_ACTIVATE
             + RestTemplateLinks.ID + userId, HttpMethod.PUT, entity, Object.class);
     }
@@ -298,7 +294,7 @@ public class RestClient {
      * @author Vlad Pikhotskyi
      */
     public List<String> getDeactivationReason(Long userId, String adminLang) {
-        HttpEntity<String> entity = new HttpEntity<>(setHeader());
+        HttpEntity<String> entity = new HttpEntity<>(new HttpHeaders());
         String[] reasonDtos = restTemplate.exchange(greenCityUserServerAddress + RestTemplateLinks.USER_REASONS
             + RestTemplateLinks.ID + userId
             + RestTemplateLinks.ADMIN_LANG + adminLang, HttpMethod.GET, entity, String[].class).getBody();
@@ -317,7 +313,7 @@ public class RestClient {
     public void deactivateAllUsers(List<Long> listId) {
         Gson gson = new Gson();
         String json = gson.toJson(listId);
-        HttpHeaders headers = setHeader();
+        HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<String> entity = new HttpEntity<>(json, headers);
         restTemplate.exchange(greenCityUserServerAddress
@@ -332,7 +328,7 @@ public class RestClient {
      * @author Orest Mamchuk
      */
     public void managementRegisterUser(UserManagementDto userDto) {
-        HttpHeaders headers = setHeader();
+        HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<UserManagementDto> entity = new HttpEntity<>(userDto, headers);
         restTemplate.exchange(greenCityUserServerAddress
@@ -403,22 +399,7 @@ public class RestClient {
      * @author Orest Mamchuk
      */
     public void save(UserVO userVO) {
-        HttpEntity<UserVO> entity = new HttpEntity<>(userVO, setHeader());
-        restTemplate.exchange(greenCityUserServerAddress
-            + RestTemplateLinks.USER, HttpMethod.POST, entity, Object.class)
-            .getBody();
-    }
-
-    /**
-     * Method that allow you to save new {@link UserVO}.
-     *
-     * @param userVO for save User.
-     * @author Orest Mamchuk
-     */
-    public void save(UserVO userVO, String accessToken) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.set(AUTHORIZATION, accessToken);
-        HttpEntity<UserVO> entity = new HttpEntity<>(userVO, headers);
+        HttpEntity<UserVO> entity = new HttpEntity<>(userVO, new HttpHeaders());
         restTemplate.exchange(greenCityUserServerAddress
             + RestTemplateLinks.USER, HttpMethod.POST, entity, Object.class)
             .getBody();
@@ -434,13 +415,13 @@ public class RestClient {
      */
     public PageableAdvancedDto<UserManagementVO> search(Pageable pageable, UserManagementViewDto userViewDto) {
         Sort sort = pageable.getSort();
-        StringBuilder orderUrl = new StringBuilder("");
+        StringBuilder orderUrl = new StringBuilder();
         if (!sort.isEmpty()) {
             for (Sort.Order order : sort) {
-                orderUrl.append(orderUrl.toString() + order.getProperty() + "," + order.getDirection());
+                orderUrl.append(orderUrl).append(order.getProperty()).append(",").append(order.getDirection());
             }
         }
-        HttpHeaders headers = setHeader();
+        HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<UserManagementViewDto> entity = new HttpEntity<>(userViewDto, headers);
         return restTemplate.exchange(
@@ -451,30 +432,5 @@ public class RestClient {
             HttpMethod.POST, entity,
             new ParameterizedTypeReference<PageableAdvancedDto<UserManagementVO>>() {
             }).getBody();
-    }
-
-    /**
-     * Method makes headers for RestTemplate.
-     *
-     * @return {@link HttpEntity}
-     */
-    private HttpHeaders setHeader() {
-        String accessToken = httpServletRequest.getHeader(AUTHORIZATION);
-        Cookie[] cookies = httpServletRequest.getCookies();
-        String uri = httpServletRequest.getRequestURI();
-        if (cookies != null && uri.startsWith("/management")) {
-            accessToken = getTokenFromCookies(cookies);
-        }
-        HttpHeaders headers = new HttpHeaders();
-        headers.set(AUTHORIZATION, accessToken);
-        return headers;
-    }
-
-    private String getTokenFromCookies(Cookie[] cookies) {
-        String token = Arrays.stream(cookies)
-            .filter(c -> c.getName().equals("accessToken"))
-            .findFirst()
-            .map(Cookie::getValue).orElse(null);
-        return token == null ? null : "Bearer " + token;
     }
 }

@@ -29,7 +29,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashSet;
@@ -54,13 +53,9 @@ class EcoNewsCommentServiceImplTest {
     @Mock
     private SimpMessagingTemplate messagingTemplate;
     @Mock
-    private HttpServletRequest httpServletRequest;
-    @Mock
     EcoNewsRepo ecoNewsRepo;
     @InjectMocks
     private EcoNewsCommentServiceImpl ecoNewsCommentService;
-
-    private String token = "token";
 
     @Test
     void saveCommentWithNoParentCommentId() {
@@ -165,7 +160,6 @@ class EcoNewsCommentServiceImplTest {
         int pageSize = 3;
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
         UserVO userVO = getUserVO();
-        User user = getUser();
         Long ecoNewsId = 1L;
         EcoNewsComment ecoNewsComment = ModelUtils.getEcoNewsComment();
         ecoNewsComment.setUsersLiked(new HashSet<>());
@@ -192,7 +186,6 @@ class EcoNewsCommentServiceImplTest {
         int pageSize = 3;
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
         UserVO userVO = getUserVO();
-        User user = getUser();
         Long parentCommentId = 1L;
         EcoNewsComment ecoNewsCommentChild = ModelUtils.getEcoNewsComment();
         ecoNewsCommentChild.setParentComment(ModelUtils.getEcoNewsComment());
@@ -215,14 +208,12 @@ class EcoNewsCommentServiceImplTest {
     @Test
     void userDeletesOwnComment() {
         UserVO userVO = getUserVO();
-        User user = ModelUtils.getUser();
         Long commentId = 1L;
 
         when(ecoNewsCommentRepo.findById(commentId))
             .thenReturn(Optional.ofNullable(ModelUtils.getEcoNewsComment()));
-        when(httpServletRequest.getHeader("Authorization")).thenReturn(token);
         ecoNewsCommentService.deleteById(commentId, userVO);
-        EcoNewsComment comment = verify(ecoNewsCommentRepo, times(1)).save(any(EcoNewsComment.class));
+        verify(ecoNewsCommentRepo, times(1)).save(any(EcoNewsComment.class));
     }
 
     @Test
@@ -234,7 +225,6 @@ class EcoNewsCommentServiceImplTest {
 
         when(ecoNewsCommentRepo.findById(commentId))
             .thenReturn(Optional.ofNullable(ModelUtils.getEcoNewsComment()));
-        when(httpServletRequest.getHeader("Authorization")).thenReturn(token);
         ecoNewsCommentService.deleteById(commentId, userVO);
         verify(ecoNewsCommentRepo, times(1)).save(any(EcoNewsComment.class));
     }
@@ -245,17 +235,15 @@ class EcoNewsCommentServiceImplTest {
         UserVO userVO = getUserVO();
         user.setRole(Role.ROLE_ADMIN);
         Long commentId = 1L;
-        when(httpServletRequest.getHeader("Authorization")).thenReturn(token);
         when(ecoNewsCommentRepo.findById(commentId))
             .thenReturn(Optional.ofNullable(ModelUtils.getEcoNewsComment()));
 
         ecoNewsCommentService.deleteById(commentId, userVO);
-        EcoNewsComment comment = verify(ecoNewsCommentRepo, times(1)).save(any(EcoNewsComment.class));
+        verify(ecoNewsCommentRepo, times(1)).save(any(EcoNewsComment.class));
     }
 
     @Test
     void deleteCommentThatDoesntExistsThrowException() {
-        User user = ModelUtils.getUser();
         UserVO userVO = getUserVO();
         Long commentId = 1L;
 
@@ -270,7 +258,6 @@ class EcoNewsCommentServiceImplTest {
     void deleteCommentUserHasNoPermissionThrowException() {
         User user = ModelUtils.getUser();
 
-        User userToDelete = ModelUtils.getUser();
         UserVO userToDeleteVO = getUserVO();
         user.setId(2L);
         Long commentId = 1L;

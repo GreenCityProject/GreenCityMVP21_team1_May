@@ -299,7 +299,7 @@ public class EcoNewsServiceImpl implements EcoNewsService {
             tags.addAll(ecoNews.getTags().stream().flatMap(t -> t.getTagTranslations().stream())
                 .filter(tagTranslation -> tagTranslation.getLanguage().getCode().equals(lang))
                 .map(TagTranslation::getName)
-                .collect(Collectors.toList()));
+                .toList());
         }
         return getEcoNewsDto(ecoNews, tags);
     }
@@ -316,9 +316,8 @@ public class EcoNewsServiceImpl implements EcoNewsService {
         if (user.getRole() != Role.ROLE_ADMIN && !user.getId().equals(ecoNewsVO.getAuthor().getId())) {
             throw new UserHasNoPermissionToAccessException(ErrorMessage.USER_HAS_NO_PERMISSION);
         }
-        String accessToken = httpServletRequest.getHeader(AUTHORIZATION);
         CompletableFuture.runAsync(
-            () -> ratingCalculation.ratingCalculation(RatingCalculationEnum.DELETE_ECO_NEWS, user, accessToken));
+            () -> ratingCalculation.ratingCalculation(RatingCalculationEnum.DELETE_ECO_NEWS, user));
         ecoNewsRepo.deleteById(ecoNewsVO.getId());
     }
 
@@ -407,9 +406,8 @@ public class EcoNewsServiceImpl implements EcoNewsService {
      */
     public void likeComment(UserVO user, EcoNewsCommentVO comment) {
         comment.getUsersLiked().add(user);
-        String accessToken = httpServletRequest.getHeader(AUTHORIZATION);
         CompletableFuture
-            .runAsync(() -> ratingCalculation.ratingCalculation(RatingCalculationEnum.LIKE_COMMENT, user, accessToken));
+            .runAsync(() -> ratingCalculation.ratingCalculation(RatingCalculationEnum.LIKE_COMMENT, user));
     }
 
     /**
@@ -420,10 +418,9 @@ public class EcoNewsServiceImpl implements EcoNewsService {
      * @author Dovganyuk Taras
      */
     public void unlikeComment(UserVO user, EcoNewsCommentVO comment) {
-        String accessToken = httpServletRequest.getHeader(AUTHORIZATION);
         comment.getUsersLiked().removeIf(u -> u.getId().equals(user.getId()));
         CompletableFuture
-            .runAsync(() -> ratingCalculation.ratingCalculation(RatingCalculationEnum.LIKE_COMMENT, user, accessToken));
+            .runAsync(() -> ratingCalculation.ratingCalculation(RatingCalculationEnum.LIKE_COMMENT, user));
     }
 
     @Override
@@ -642,7 +639,7 @@ public class EcoNewsServiceImpl implements EcoNewsService {
     }
 
     private void setValueIfNotEmpty(List<SearchCriteria> searchCriteria, String key, String value) {
-        if (!StringUtils.isEmpty(value)) {
+        if (StringUtils.hasText(value)) {
             searchCriteria.add(SearchCriteria.builder()
                 .key(key)
                 .type(key)
@@ -674,7 +671,7 @@ public class EcoNewsServiceImpl implements EcoNewsService {
                 .flatMap(t -> t.getTagTranslations().stream())
                 .filter(t -> t.getLanguage().getCode().equals(language))
                 .map(TagTranslation::getName)
-                .collect(Collectors.toList()));
+                .toList());
         }
 
         return buildEcoNewsGenericDto(ecoNews, tags);
@@ -769,9 +766,8 @@ public class EcoNewsServiceImpl implements EcoNewsService {
             }.getType()));
         try {
             ecoNewsRepo.save(toSave);
-            String accessToken = httpServletRequest.getHeader(AUTHORIZATION);
             CompletableFuture.runAsync(
-                () -> ratingCalculation.ratingCalculation(RatingCalculationEnum.ADD_ECO_NEWS, byEmail, accessToken));
+                () -> ratingCalculation.ratingCalculation(RatingCalculationEnum.ADD_ECO_NEWS, byEmail));
         } catch (DataIntegrityViolationException e) {
             throw new NotSavedException(ErrorMessage.ECO_NEWS_NOT_SAVED);
         }

@@ -23,12 +23,11 @@ public class RatingCalculation {
      * 
      * @param rating      of {@link RatingCalculationEnum}
      * @param userVo      of {@link UserVO}
-     * @param accessToken accessToken for security
      */
-    public void ratingCalculation(RatingCalculationEnum rating, UserVO userVo, String accessToken) {
+    public void ratingCalculation(RatingCalculationEnum rating, UserVO userVo) {
         User user = modelMapper.map(userVo, User.class);
         userVo.setRating(userVo.getRating() + rating.getRatingPoints());
-        restClient.save(userVo, accessToken);
+        restClient.save(userVo);
         RatingStatistics ratingStatistics = RatingStatistics
             .builder()
             .rating(userVo.getRating())
