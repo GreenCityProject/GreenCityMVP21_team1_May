@@ -102,6 +102,7 @@ public class SecurityConfig {
                         .accessDeniedHandler((req, resp, exc) ->
                                 resp.sendError(SC_FORBIDDEN, "You don't have authorities.")))
                 .authorizeHttpRequests(req -> req
+                        .requestMatchers("/error").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/", "/management/", "/management/login").permitAll()
                         .requestMatchers("/v2/api-docs/**", "/v3/api-docs/**", "/swagger.json",
@@ -160,6 +161,8 @@ public class SecurityConfig {
                                 "/ownSecurity/changePassword")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET,
+                                "/event",
+                                "/event/{id}",
                                 "/achievements",
                                 CUSTOM_SHOPPING_LIST_ITEMS,
                                 CUSTOM_SHOPPING_LIST,
@@ -223,6 +226,7 @@ public class SecurityConfig {
                                 "/event/create")
                         .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)
                         .requestMatchers(HttpMethod.PUT,
+                                "/event/update",
                                 "/habit/statistic/{id}",
                                 "/econews/update",
                                 "/ownSecurity",

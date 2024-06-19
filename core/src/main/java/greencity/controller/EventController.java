@@ -2,8 +2,11 @@ package greencity.controller;
 
 import greencity.annotations.MultipartValidation;
 import greencity.constant.HttpStatuses;
+import greencity.annotations.CurrentUser;
 import greencity.dto.event.EventCreateDtoRequest;
 import greencity.dto.event.EventCreateDtoResponse;
+import greencity.dto.event.EventUpdateDtoRequest;
+import greencity.dto.user.UserVO;
 import greencity.service.EventService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -20,6 +23,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 import static greencity.constant.EventConstants.*;
 
@@ -58,4 +63,59 @@ public class EventController {
         return ResponseEntity.status(HttpStatus.CREATED).body(eventService.create(dto, images, principal));
     }
 
+
+    /**
+     * Method for getting all events.
+     *
+     * @return list of {@link EventCreateDtoResponse}
+     * @author Dmytro Fedotov
+     */
+    @Operation(summary = "Get all events")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
+    })
+    @GetMapping("")
+    public ResponseEntity<List<EventCreateDtoResponse>> getAllEvents(){
+        return ResponseEntity.status(HttpStatus.OK).body(eventService.getAll());
+    }
+
+    /**
+     * Method for getting event by id.
+     *
+     * @return object of {@link EventCreateDtoResponse}
+     * @author Dmytro Fedotov
+     */
+    @Operation(summary = "Get event by id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
+            @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
+    })
+    @GetMapping("/{id}")
+    public ResponseEntity<EventCreateDtoResponse> getEventById(@PathVariable Long id){
+        return ResponseEntity.status(HttpStatus.OK).body(eventService.findEventById(id));
+    }
+
+
+    /**
+     * Method for updating event by id.
+     *
+     * @return object of {@link EventCreateDtoResponse}
+     * @author Dmytro Fedotov
+     */
+    @Operation(summary = "Update event")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
+            @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
+    })
+    @PutMapping(value="/update", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<EventCreateDtoResponse> updateEvent(
+            @Parameter(required = true) @Valid @RequestPart("dto") EventUpdateDtoRequest eventUpdate,
+            @Parameter(description = "Images for events") @Size(max = 5) @RequestPart("images") MultipartFile[] images,
+            @Parameter(hidden = true) @CurrentUser UserVO user
+    ){
+        return ResponseEntity.status(HttpStatus.OK).body(eventService.update(eventUpdate, images, user));
+    }
 }

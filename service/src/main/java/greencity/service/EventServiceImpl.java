@@ -1,11 +1,14 @@
 package greencity.service;
 
 import greencity.client.RestClient;
-import greencity.dto.event.EventCreateDtoRequest;
-import greencity.dto.event.EventCreateDtoResponse;
-import greencity.dto.event.EventDateLocationDtoRequest;
+import greencity.constant.ErrorMessage;
+import greencity.dto.event.*;
 import greencity.dto.user.NotificationDto;
+import greencity.dto.user.UserVO;
 import greencity.entity.*;
+import greencity.enums.Role;
+import greencity.exception.exceptions.BadRequestException;
+import greencity.exception.exceptions.NotFoundException;
 import greencity.exception.exceptions.AlreadyExistException;
 import greencity.repository.EventRepo;
 import jakarta.transaction.Transactional;
@@ -20,6 +23,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -75,7 +80,56 @@ public class EventServiceImpl implements EventService {
         event.setDates(eventDateLocationList);
         event = eventRepo.save(event);
 
-        restClient.sendNotificationToUser(prepareNotificationFromEvent(event), organiser.getEmail());
+        //restClient.sendNotificationToUser(prepareNotificationFromEvent(event), organiser.getEmail());
+
+        return modelMapper.map(event, EventCreateDtoResponse.class);
+    }
+
+    @Override
+    public List<EventCreateDtoResponse> getAll() {
+        List<Event> events = this.eventRepo.findAll();
+        return events.stream()
+                .map(e -> modelMapper.map(e, EventCreateDtoResponse.class))
+                .toList();
+    }
+
+    @Override
+    public EventCreateDtoResponse findEventById(Long id) {
+        Optional<Event> event = eventRepo.findById(id);
+        if(event.isPresent()) {
+            return modelMapper.map(event.get(), EventCreateDtoResponse.class);
+        }
+        else throw new NotFoundException(ErrorMessage.EVENT_NOT_FOUND_BY_ID + id);
+    }
+
+    @Override
+    @Transactional
+    public EventCreateDtoResponse update(EventUpdateDtoRequest eventUpdate, MultipartFile[] images, UserVO user){
+        Long eventId = eventUpdate.getId();
+        Event event = eventRepo.findById(eventId).orElseThrow(() -> new NotFoundException(ErrorMessage.EVENT_NOT_FOUND_BY_ID + eventId));
+
+        if (user.getRole() != Role.ROLE_ADMIN && !Objects.equals(user.getId(), event.getOrganizer().getId())) {
+            throw new BadRequestException(ErrorMessage.USER_HAS_NO_PERMISSION);
+        }
+
+        List<EventDateLocation> eventDateLocationList = convertLocationList(eventUpdate, event);
+
+        List<AdditionalImage> additionalImagesLinks = getLinksOfImages(images);
+        String titleImage = additionalImagesLinks.isEmpty() ? "" : additionalImagesLinks.getFirst().getData();
+        List<AdditionalImage> additionalImageList = additionalImagesLinks.size() > 1 ?
+                additionalImagesLinks.subList(1, additionalImagesLinks.size()) : new ArrayList<>();
+
+        for(AdditionalImage a: additionalImageList){
+            a.setEvent(event);
+        }
+
+        event.setTitle(eventUpdate.getTitle());
+        event.setDescription(eventUpdate.getDescription());
+        event.setDates(eventDateLocationList);
+        event.setTitleImage(titleImage);
+        event.setAdditionalImages(additionalImageList);
+
+        eventRepo.save(event);
 
         return modelMapper.map(event, EventCreateDtoResponse.class);
     }
@@ -90,6 +144,20 @@ public class EventServiceImpl implements EventService {
                 throw new AlreadyExistException(String.format("Event with title '%s' already exist", dto.getTitle()));
             }
         }
+    }
+
+    List<EventDateLocation> convertLocationList(EventUpdateDtoRequest eventUpdate, Event event){
+        List<EventDateLocation> eventDateLocationList = new ArrayList<>();
+        for (EventDateLocationDtoRequest e : eventUpdate.getDates()) {
+            EventDateLocation eventDateLocation = modelMapper.map(e, EventDateLocation.class);
+            Address address = modelMapper.map(e.getAddress(), Address.class);
+
+            eventDateLocation.setAddress(address);
+            eventDateLocation.setEvent(event);
+
+            eventDateLocationList.add(eventDateLocation);
+        }
+        return eventDateLocationList;
     }
 
     private List<AdditionalImage> getLinksOfImages(MultipartFile[] images) {
