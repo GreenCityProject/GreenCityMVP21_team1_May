@@ -1,6 +1,5 @@
 package greencity.entity;
 
-import greencity.annotations.ValidStartBeforeEndDates;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -15,8 +14,8 @@ import java.time.LocalDateTime;
 @Table(name = "event_date_locations")
 @EqualsAndHashCode(exclude = {"id", "event"})
 @ToString(exclude = {"id", "event"})
-@ValidStartBeforeEndDates
 public class EventDateLocation {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)

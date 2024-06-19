@@ -20,6 +20,7 @@ import java.util.List;
 @EqualsAndHashCode(exclude = {"id", "timestamp", "organizer", "isOpen", "titleImage", "additionalImages"})
 @ToString(exclude = {"id", "timestamp", "organizer", "titleImage", "additionalImages"})
 public class Event {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
