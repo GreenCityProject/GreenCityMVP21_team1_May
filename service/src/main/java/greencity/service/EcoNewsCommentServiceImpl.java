@@ -73,7 +73,19 @@ public class EcoNewsCommentServiceImpl implements EcoNewsCommentService {
         String accessToken = httpServletRequest.getHeader(AUTHORIZATION);
         CompletableFuture.runAsync(
             () -> ratingCalculation.ratingCalculation(RatingCalculationEnum.ADD_COMMENT, userVO, accessToken));
+        sendNotification(userVO, ecoNewsVO);
         return modelMapper.map(ecoNewsCommentRepo.save(ecoNewsComment), AddEcoNewsCommentDtoResponse.class);
+    }
+
+    private void sendNotification(UserVO currentUser, EcoNewsVO ecoNews) {
+        CreateNotificationDto notificationDto = CreateNotificationDto.builder()
+                .userId(ecoNews.getAuthor().getId())
+                .senderId(currentUser.getId())
+                .section("GreenCity")
+                .title("Your news was commented")
+                .message(String.format("%s commented on your news %s.", currentUser.getFirstName(), ecoNews.getTitle()))
+                .build();
+        notificationService.save(notificationDto);
     }
 
     /**
