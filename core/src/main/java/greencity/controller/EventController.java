@@ -124,7 +124,11 @@ public class EventController {
     }
 
     /**
-     * Method for deleting an event.
+     * Method for deleting an event by a given Event ID.
+     *
+     * @param eventId the ID of the event to be deleted.
+     * @param principal is automatically inserted via SecurityContextHolder, in this context - the user's name.
+     * @return ResponseEntity<Object> this returns server's response which denotes the status of the operation.
      */
     @Operation(summary = "Delete event")
     @ApiResponses(value = {
