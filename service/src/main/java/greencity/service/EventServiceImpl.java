@@ -254,7 +254,7 @@ public class EventServiceImpl implements EventService {
      */
     @Override
     public void delete(Long eventId, String email) {
-        UserVO userVO = restClient.findByEmail(email);
+        UserVO userVO = userService.findByEmail(email);
         Event toDelete = eventRepo.findById(eventId).orElseThrow(() -> new NotFoundException(ErrorMessage.EVENT_NOT_FOUND));
 
         if (toDelete.getOrganizer().getId().equals(userVO.getId()) || userVO.getRole() == Role.ROLE_ADMIN) {
