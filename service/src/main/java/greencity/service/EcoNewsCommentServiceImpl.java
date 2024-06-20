@@ -213,8 +213,21 @@ public class EcoNewsCommentServiceImpl implements EcoNewsCommentService {
             ecoNewsService.unlikeComment(userVO, ecoNewsCommentVO);
         } else {
             ecoNewsService.likeComment(userVO, ecoNewsCommentVO);
+            sendNotification(userVO, ecoNewsCommentVO);
         }
         ecoNewsCommentRepo.save(modelMapper.map(ecoNewsCommentVO, EcoNewsComment.class));
+    }
+
+    private void sendNotification(UserVO currentUser, EcoNewsCommentVO comment) {
+        EcoNews ecoNews = ecoNewsRepo.findById(comment.getEcoNews().getId()).orElseThrow();
+        CreateNotificationDto notificationDto = CreateNotificationDto.builder()
+                .userId(comment.getUser().getId())
+                .senderId(currentUser.getId())
+                .section("GreenCity")
+                .title("Your comment was liked")
+                .message(String.format("%s likes your comment to the news %s.", currentUser.getFirstName(), ecoNews.getTitle()))
+                .build();
+        notificationService.save(notificationDto);
     }
 
     /**
