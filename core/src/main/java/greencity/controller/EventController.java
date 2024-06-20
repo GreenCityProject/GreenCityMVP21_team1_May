@@ -125,8 +125,6 @@ public class EventController {
 
     /**
      * Method for deleting an event.
-     *
-     * @author Max Bohonko.
      */
     @Operation(summary = "Delete event")
     @ApiResponses(value = {
