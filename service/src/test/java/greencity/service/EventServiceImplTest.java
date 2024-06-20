@@ -86,7 +86,7 @@ class EventServiceImplTest {
         Long eventId = 1L;
         String email = "user@domain.com";
 
-        when(restClient.findByEmail(email)).thenReturn(new UserVO());
+        when(userService.findByEmail(email)).thenReturn(new UserVO());
         when(eventRepo.findById(eventId)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> {
@@ -105,7 +105,7 @@ class EventServiceImplTest {
         event.setOrganizer(organizer);
         user.setId(1L);
 
-        when(restClient.findByEmail(email)).thenReturn(user);
+        when(userService.findByEmail(email)).thenReturn(user);
         when(eventRepo.findById(eventId)).thenReturn(Optional.of(event));
 
         assertThrows(UserHasNoPermissionToAccessException.class, () -> {
@@ -124,7 +124,7 @@ class EventServiceImplTest {
         event.setOrganizer(organizer);
         user.setId(1L);
 
-        when(restClient.findByEmail(email)).thenReturn(user);
+        when(userService.findByEmail(email)).thenReturn(user);
         when(eventRepo.findById(eventId)).thenReturn(Optional.of(event));
 
         assertDoesNotThrow(() -> {
