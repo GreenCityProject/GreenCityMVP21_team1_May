@@ -5,6 +5,7 @@ import greencity.constant.ErrorMessage;
 import greencity.dto.PageableDto;
 import greencity.dto.econews.EcoNewsVO;
 import greencity.dto.econewscomment.*;
+import greencity.dto.notifications.CreateNotificationDto;
 import greencity.dto.user.UserVO;
 import greencity.entity.EcoNews;
 import greencity.entity.EcoNewsComment;
@@ -33,6 +34,7 @@ import static greencity.constant.AppConstant.AUTHORIZATION;
 public class EcoNewsCommentServiceImpl implements EcoNewsCommentService {
     private EcoNewsCommentRepo ecoNewsCommentRepo;
     private EcoNewsService ecoNewsService;
+    private NotificationService notificationService;
     private ModelMapper modelMapper;
     private final SimpMessagingTemplate messagingTemplate;
     private final greencity.rating.RatingCalculation ratingCalculation;
@@ -199,8 +201,21 @@ public class EcoNewsCommentServiceImpl implements EcoNewsCommentService {
             ecoNewsService.unlikeComment(userVO, ecoNewsCommentVO);
         } else {
             ecoNewsService.likeComment(userVO, ecoNewsCommentVO);
+            sendNotification(userVO, ecoNewsCommentVO);
         }
         ecoNewsCommentRepo.save(modelMapper.map(ecoNewsCommentVO, EcoNewsComment.class));
+    }
+
+    private void sendNotification(UserVO currentUser, EcoNewsCommentVO comment) {
+        EcoNews ecoNews = ecoNewsRepo.findById(comment.getEcoNews().getId()).orElseThrow();
+        CreateNotificationDto notificationDto = CreateNotificationDto.builder()
+                .userId(comment.getUser().getId())
+                .senderId(currentUser.getId())
+                .section("GreenCity")
+                .title("Your comment was liked")
+                .message(String.format("%s likes your comment to the news %s.", currentUser.getFirstName(), ecoNews.getTitle()))
+                .build();
+        notificationService.save(notificationDto);
     }
 
     /**
