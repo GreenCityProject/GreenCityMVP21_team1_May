@@ -99,7 +99,7 @@ class EventControllerTest {
     void deleteEvent_validRequest_200Ok() throws Exception {
         Long eventId = 1L;
 
-        mockMvc.perform(delete(EVENT_LINK + "/delete/" + eventId)
+        mockMvc.perform(delete(EVENT_LINK + "/" + eventId)
                         .with(csrf())
                         .principal(() -> "username")
                         .accept(APPLICATION_JSON))
