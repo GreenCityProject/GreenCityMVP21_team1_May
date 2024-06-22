@@ -45,7 +45,7 @@ public class EventCommentController {
             @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
             @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
     })
-    @PostMapping("/{eventId}/comments/create")
+    @PostMapping("/{eventId}/comments")
     public ResponseEntity<EventCommentDtoResponse> save(@PathVariable Long eventId,
                                                         @Valid @ValidEventCommentRequest @RequestBody AddEventCommentDtoRequest request,
                                                         @Parameter(hidden = true) @CurrentUser UserVO user) {
@@ -134,7 +134,7 @@ public class EventCommentController {
             @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
             @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
     })
-    @PutMapping("/comments/update")
+    @PatchMapping("/comments")
     public ResponseEntity<EventCommentDtoResponse> update(@Valid @RequestBody @ValidEventCommentRequest UpdateEventCommentDtoRequest request,
                                                         @Parameter(hidden = true) @CurrentUser UserVO user) {
         return ResponseEntity

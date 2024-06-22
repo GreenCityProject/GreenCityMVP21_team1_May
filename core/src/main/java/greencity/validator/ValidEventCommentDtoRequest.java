@@ -10,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
 
@@ -30,26 +32,29 @@ public class ValidEventCommentDtoRequest implements ConstraintValidator<ValidEve
     @Override
     public void initialize(ValidEventCommentRequest constraintAnnotation) {
         try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(new URL("https://docs.google.com/spreadsheets/d/1IeOyqg48XGBVv7TP9tZU5asO2xT2JKQdpFCJZ3WDhvU/export?format=csv").openConnection().getInputStream()));
+            String uri = "https://docs.google.com/spreadsheets/d/1IeOyqg48XGBVv7TP9tZU5asO2xT2JKQdpFCJZ3WDhvU/export?format=csv";
+            BufferedReader reader = new BufferedReader(new InputStreamReader(new URI(uri).toURL().openConnection().getInputStream()));
             String line;
             while((line = reader.readLine()) != null) {
-                String[] content;
-                try {
-                    content = line.split(",");
-                    String word = content[0];
-                    badWordsList.add(word);
-
-                    if(content.length > 1) {
-                        String exclusionWord =  content[1];
-                        partsOfNormalWords.add(exclusionWord);
-                    }
-
-                } catch(Exception e) {
-                    log.error("Error while reading file", e);
-                }
-
+                processLine(line);
             }
-        } catch (IOException e) {
+        } catch (IOException | URISyntaxException e ) {
+            log.error("Error while reading file", e);
+        }
+    }
+
+    private void processLine(String line) {
+        try {
+            String[] content;
+            content = line.split(",");
+            String word = content[0];
+            badWordsList.add(word);
+
+            if (content.length > 1) {
+                String exclusionWord = content[1];
+                partsOfNormalWords.add(exclusionWord);
+            }
+        } catch (Exception e) {
             log.error("Error while reading file", e);
         }
     }
@@ -89,21 +94,13 @@ public class ValidEventCommentDtoRequest implements ConstraintValidator<ValidEve
     public boolean isValid(Object request, ConstraintValidatorContext constraintValidatorContext) {
         if (isAddEventCommentDtoRequest(request)) {
             AddEventCommentDtoRequest addRequest = (AddEventCommentDtoRequest) request;
-
-            List<String> badWords = badWordsFound(addRequest.getText());
-
-            return badWords.isEmpty();
+            return badWordsFound(addRequest.getText()).isEmpty();
 
         } else if (isUpdateEventCommentDtoRequest(request)) {
             UpdateEventCommentDtoRequest updateRequest = (UpdateEventCommentDtoRequest) request;
-
-            // todo quartz
-            // todo update patch
-
-            return true; // Placeholder, replace with actual validation
+            return badWordsFound(updateRequest.getText()).isEmpty();
         }
 
-        // If request type is neither AddEventCommentDtoRequest nor UpdateEventCommentDtoRequest
         return false;
     }
 
