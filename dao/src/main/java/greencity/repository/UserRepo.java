@@ -140,4 +140,17 @@ public interface UserRepo extends JpaRepository<User, Long>, JpaSpecificationExe
         + "(SELECT user_id FROM users_friends WHERE friend_id = :userId and status = 'FRIEND')"
         + "UNION (SELECT friend_id FROM users_friends WHERE user_id = :userId and status = 'FRIEND'));")
     List<User> getAllUserFriends(Long userId);
+
+
+    /**
+     * Updates nickname a given user.
+     *
+     * @param userId               - {@link User}'s id
+     * @param userNickname - new {@link User}'s last activity time
+     * @author Dmytro Fedotov
+     */
+    @Modifying
+    @Transactional
+    @Query("UPDATE User u SET u.nickname = :userNickname WHERE u.id = :userId")
+    void updateUserNickname(Long userId, String userNickname);
 }
