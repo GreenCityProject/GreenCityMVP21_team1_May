@@ -164,4 +164,7 @@ public class User {
 
     @OneToMany(mappedBy = "organizer", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Event> events = new ArrayList<>();
+
+    @Column(unique = true, length = 30)
+    private String nickname;
 }

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="addNicknameColumn" author="Dmytro Fedotov">
+        <addColumn tableName="users">
+            <column name="nickname" type="varchar(30)">
+                <constraints nullable="true" unique="true"/>
+            </column>
+        </addColumn>
+
+        <rollback>
+            <dropColumn tableName="users" columnName="nickname"/>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
