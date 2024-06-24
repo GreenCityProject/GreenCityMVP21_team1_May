@@ -165,4 +165,19 @@ public class EventCommentController {
                 .status(HttpStatus.OK)
                 .body(eventCommentService.isEdited(commentId, user));
     }
+
+    @Operation(summary = "Delete comment by id")
+    @ResponseStatus(value = HttpStatus.OK)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = HttpStatuses.OK,
+                    content = @Content(schema = @Schema(implementation = EventCommentDtoResponse.class))),
+            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
+            @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
+    })
+    @DeleteMapping("/comments/{commentId}")
+    public ResponseEntity<Void> deleteCommentById(@PathVariable Long commentId,
+                                                 @Parameter(hidden = true) @CurrentUser UserVO user) {
+        eventCommentService.delete(commentId, user);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
 }

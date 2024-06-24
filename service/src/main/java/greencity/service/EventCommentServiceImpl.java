@@ -10,6 +10,7 @@ import greencity.entity.EventComment;
 import greencity.entity.User;
 import greencity.exception.exceptions.BadRequestException;
 import greencity.exception.exceptions.NotFoundException;
+import greencity.exception.exceptions.UserHasNoPermissionToAccessException;
 import greencity.repository.EventCommentRepo;
 import greencity.repository.EventRepo;
 import jakarta.transaction.Transactional;
@@ -143,5 +144,16 @@ public class EventCommentServiceImpl implements EventCommentService{
 
         if (!eventComment.getAuthor().getId().equals(user.getId()))
             throw new BadRequestException("You are not allowed to update other people's comments");
+    }
+
+    public void delete (Long id, UserVO user){
+        EventComment eventComment = eventCommentRepo.findById(id)
+                .orElseThrow(() -> new NotFoundException("Event comment not found with id: " + id));
+
+        if (!eventComment.getAuthor().getId().equals(user.getId())) {
+            throw new UserHasNoPermissionToAccessException("You are not allowed to delete other people's comments");
+        }
+
+        eventCommentRepo.deleteById(id);
     }
 }

@@ -19,4 +19,5 @@ public interface EventCommentService {
     EventCommentDtoResponse update(UpdateEventCommentDtoRequest request, UserVO user);
 
     String isEdited(Long commentId, UserVO user);
+    void delete(Long commentId, UserVO user);
 }
