@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class RantingCreateDtoResponse {
+public class RantingDto {
 
     private Long id;
     private Integer rating;

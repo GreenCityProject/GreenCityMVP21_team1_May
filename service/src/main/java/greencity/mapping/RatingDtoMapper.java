@@ -1,15 +1,15 @@
 package greencity.mapping;
 
-import greencity.dto.eventorganizerranting.RantingCreateDtoResponse;
+import greencity.dto.eventorganizerranting.RantingDto;
 import greencity.entity.EventOrganizerRating;
 import org.modelmapper.AbstractConverter;
 import org.springframework.stereotype.Component;
 
 @Component
-public class RatingCreateDtoMapper extends AbstractConverter<EventOrganizerRating, RantingCreateDtoResponse> {
+public class RatingDtoMapper extends AbstractConverter<EventOrganizerRating, RantingDto> {
     @Override
-    protected RantingCreateDtoResponse convert(EventOrganizerRating eventOrganizerRating) {
-        return RantingCreateDtoResponse.builder()
+    protected RantingDto convert(EventOrganizerRating eventOrganizerRating) {
+        return RantingDto.builder()
             .id(eventOrganizerRating.getId())
             .rating(eventOrganizerRating.getRating())
             .organizerId(eventOrganizerRating.getOrganizer().getId())

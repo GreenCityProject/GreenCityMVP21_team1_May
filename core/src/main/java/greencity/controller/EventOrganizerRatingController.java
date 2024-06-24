@@ -2,7 +2,7 @@ package greencity.controller;
 
 import greencity.annotations.CurrentUser;
 import greencity.dto.eventorganizerranting.RantingCreateDtoRequest;
-import greencity.dto.eventorganizerranting.RantingCreateDtoResponse;
+import greencity.dto.eventorganizerranting.RantingDto;
 import greencity.dto.user.UserVO;
 import greencity.service.EventOrganizerRatingService;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -20,9 +20,16 @@ public class EventOrganizerRatingController {
     private final EventOrganizerRatingService eventOrganizerRatingService;
 
     @PostMapping
-    public ResponseEntity<RantingCreateDtoResponse> create(@PathVariable Long eventId,
-                                                           @RequestBody @Validated RantingCreateDtoRequest rantingCreateDtoRequest,
-                                                           @Parameter(hidden = true) @CurrentUser UserVO userVO) {
+    public ResponseEntity<RantingDto> create(@PathVariable Long eventId,
+                                             @RequestBody @Validated RantingCreateDtoRequest rantingCreateDtoRequest,
+                                             @Parameter(hidden = true) @CurrentUser UserVO userVO) {
         return ResponseEntity.status(CREATED).body(eventOrganizerRatingService.create(eventId, rantingCreateDtoRequest, userVO));
     }
+
+    @GetMapping
+    public ResponseEntity<Double> find(@PathVariable Long eventId,
+                                                    @Parameter(hidden = true) @CurrentUser UserVO userVO) {
+        return ResponseEntity.ok().body(eventOrganizerRatingService.find(eventId, userVO));
+    }
+
 }
