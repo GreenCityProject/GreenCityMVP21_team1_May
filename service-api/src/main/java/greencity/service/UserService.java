@@ -93,15 +93,6 @@ public interface UserService {
     String getInitialsById(Long userId);
 
     /**
-     * Method for updating user event organizer rating.
-     *
-     * @param userId - {@link UserVO}'s id
-     * @param rate   - new user event organizer rating
-     *
-     */
-    void updateEventOrganizerRating(Long userId, Double rate);
-
-    /**
      * Method that returns list of users filtered by criteria.
      *
      * @param criteria value which we used to filter users.

@@ -225,6 +225,7 @@ public class SecurityConfig {
                                 "/custom/shopping-list-items/{userId}/{habitId}/custom-shopping-list-items",
                                 "/event/get/{id}",
                                 "/event/create",
+                                "/event/{eventId}/organizer-rating",
                                 "/notifications/**")
                         .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)
                         .requestMatchers(HttpMethod.PUT,
