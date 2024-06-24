@@ -28,6 +28,9 @@ public class EventOrganizerRatingServiceImpl implements EventOrganizerRatingServ
     private final EventRepo eventRepo;
     private final ModelMapper modelMapper;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public RantingDto create(Long eventId, RantingCreateDtoRequest rantingCreateDtoRequest,
                              UserVO userVO) {
@@ -52,6 +55,9 @@ public class EventOrganizerRatingServiceImpl implements EventOrganizerRatingServ
         return modelMapper.map(eventOrganizerRating, RantingDto.class);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Double find(Long eventId, UserVO userVO) {
         eventRepo.findById(eventId)
