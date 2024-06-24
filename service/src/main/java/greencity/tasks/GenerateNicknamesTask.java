@@ -1,8 +1,10 @@
 package greencity.tasks;
 
+import greencity.entity.ScheduledTask;
 import greencity.entity.User;
+import greencity.exception.exceptions.NotFoundException;
+import greencity.repository.ScheduledTasksRepo;
 import greencity.repository.UserRepo;
-import greencity.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +17,8 @@ import org.springframework.stereotype.Component;
 import java.time.Instant;
 import java.util.*;
 
+import static greencity.constant.AppConstant.SCHEDULED_TASK;
+
 @Component
 @AllArgsConstructor
 @Slf4j
@@ -23,6 +27,7 @@ public class GenerateNicknamesTask implements SchedulingConfigurer {
     private TaskScheduler taskScheduler;
 
     private final UserRepo userRepo;
+    private final ScheduledTasksRepo scheduledTasksRepo;
 
     private Set<String> usedNicknames;
 
@@ -37,18 +42,23 @@ public class GenerateNicknamesTask implements SchedulingConfigurer {
 
     @Transactional
     public void generateNicknames() {
-        List<User> users = userRepo.findAll();
+        ScheduledTask scheduledTask = scheduledTasksRepo.findByTask(SCHEDULED_TASK).orElseThrow(() -> new NotFoundException("Task not found"));
+        if(!scheduledTask.isDone()){
+            List<User> users = userRepo.findAll();
 
-//        for (User user : users) {
-//            userRepo.updateUserNickname(user.getId(), null);
-//        }
+//            for (User user : users) {
+//                userRepo.updateUserNickname(user.getId(), null);
+//            }
 
-        usedNicknames.addAll(users.stream().map(User::getNickname).filter(Objects::nonNull).toList());
+            usedNicknames.addAll(users.stream().map(User::getNickname).filter(Objects::nonNull).toList());
 
-        for (User user : users) {
-            if(user.getNickname() == null || user.getNickname().isEmpty()) {
-                userRepo.updateUserNickname(user.getId(), generateUniqueNickname(user.getName()));
+            for (User user : users) {
+                if(user.getNickname() == null || user.getNickname().isEmpty()) {
+                    userRepo.updateUserNickname(user.getId(), generateUniqueNickname(user.getName()));
+                }
             }
+
+            scheduledTasksRepo.updateScheduledTaskDone(scheduledTask.getId(), true);
         }
     }
 

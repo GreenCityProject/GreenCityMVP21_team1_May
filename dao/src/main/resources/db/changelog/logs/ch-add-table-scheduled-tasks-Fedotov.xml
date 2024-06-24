@@ -27,7 +27,7 @@
             </sqlCheck>
         </preConditions>
         <insert tableName="scheduled_tasks">
-            <column name="task" value="generate nicknames"/>
+            <column name="task" value="generate_nicknames"/>
             <column name="done" value="false"/>
         </insert>
     </changeSet>

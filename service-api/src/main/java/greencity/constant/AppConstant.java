@@ -18,6 +18,7 @@ public final class AppConstant {
     public static final Integer MAX_PASSED_DAYS_OF_ABILITY_TO_ENROLL = 8;
     public static final String DEFAULT_HABIT_IMAGE =
         "https://csb10032000a548f571.blob.core.windows.net/allfiles/8f09887c-2fbf-4ee1-95fc-6763a1873b93EventDefaultImage.png";
+    public static final String SCHEDULED_TASK = "generate_nicknames";
 
     private AppConstant() {
     }

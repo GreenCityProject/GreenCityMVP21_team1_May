@@ -143,7 +143,7 @@ public interface UserRepo extends JpaRepository<User, Long>, JpaSpecificationExe
 
 
     /**
-     * Updates nickname a given user.
+     * Updates nickname for a given user.
      *
      * @param userId               - {@link User}'s id
      * @param userNickname - new {@link User}'s last activity time
