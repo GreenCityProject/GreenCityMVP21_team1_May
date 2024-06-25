@@ -23,18 +23,12 @@ public final class SwaggerExampleModel {
             + "  \"source\": \"string\"\n";
 
     private static final String EXAMPLE_FOR_UPDATE_ECO_NEWS =
-        "  \"image\": \"string\",\n"
-            + "  \"source\": \"https://example.org/\",\n"
-            + "  \"shortInfo\": \"string\",\n"
-            + "  \"tags\": [\n"
-            + "    \"string\"\n"
-            + "  ],\n"
-            + "  \"titleTranslation\":\n"
-            + "     {\"content\": \"string\",\n"
-            + "     \"languageCode\": \"string\"},\n"
-            + "  \"textTranslation\":\n"
-            + "     {\"content\": \"string\",\n"
-            + "     \"languageCode\": \"string\"}\n";
+            "\"id\":\"string\",\n" +
+                    "\"tags\":[\"string\"],\n" +
+                    "\"content\":\"string\",\n" +
+                    "\"title\":\"string\",\n" +
+                    "\"source\":\"string\",\n" +
+                    "\"text\":\"string\"\n";
 
     private static final String AFTER_EXAMPLE = "\t</pre>\n"
         + "</div>";
@@ -61,7 +55,6 @@ public final class SwaggerExampleModel {
             + IMAGE_DESCRIPTION
             + BEFORE_EXAMPLE
             + "{\n"
-            + "  \"id\": 0,\n"
             + EXAMPLE_FOR_UPDATE_ECO_NEWS
             + "}\n"
             + AFTER_EXAMPLE;
