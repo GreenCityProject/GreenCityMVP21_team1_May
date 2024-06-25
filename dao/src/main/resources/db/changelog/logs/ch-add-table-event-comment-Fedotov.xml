@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="createEventCommentsTable" author="Dmytro Fedotov">
+        <createTable tableName="event_comments">
+            <column name="id" autoIncrement="true" type="BIGINT">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="text" type="VARCHAR(8000)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_date" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modified_date" type="TIMESTAMP">
+                <constraints nullable="true"/>
+            </column>
+            <column name="author_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="event_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="replied_to_id" type="BIGINT">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="event_comments"
+                                 baseColumnNames="author_id"
+                                 referencedTableName="users"
+                                 referencedColumnNames="id"
+                                 constraintName="FK_author_id"/>
+        <addForeignKeyConstraint baseTableName="event_comments"
+                                 baseColumnNames="event_id"
+                                 referencedTableName="events"
+                                 referencedColumnNames="id"
+                                 constraintName="FK_event_id"/>
+        <addForeignKeyConstraint baseTableName="event_comments"
+                                 baseColumnNames="replied_to_id"
+                                 referencedTableName="event_comments"
+                                 referencedColumnNames="id"
+                                 constraintName="FK_replied_to_id"/>
+    </changeSet>
+</databaseChangeLog>
