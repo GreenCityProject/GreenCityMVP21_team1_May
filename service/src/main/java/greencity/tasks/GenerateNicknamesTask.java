@@ -1,8 +1,10 @@
 package greencity.tasks;
 
+import greencity.entity.NicknamesArchive;
 import greencity.entity.ScheduledTask;
 import greencity.entity.User;
 import greencity.exception.exceptions.NotFoundException;
+import greencity.repository.NicknamesArchiveRepo;
 import greencity.repository.ScheduledTasksRepo;
 import greencity.repository.UserRepo;
 import jakarta.transaction.Transactional;
@@ -28,6 +30,7 @@ public class GenerateNicknamesTask implements SchedulingConfigurer {
 
     private final UserRepo userRepo;
     private final ScheduledTasksRepo scheduledTasksRepo;
+    private final NicknamesArchiveRepo nicknamesArchiveRepo;
 
     private Set<String> usedNicknames;
 
@@ -35,7 +38,7 @@ public class GenerateNicknamesTask implements SchedulingConfigurer {
     @Transactional
     public void configureTasks(@NotNull ScheduledTaskRegistrar taskRegistrar) {
         taskScheduler.schedule(() -> {
-            log.info("TASK RUNNING");
+            log.info("SCHEDULER RUNNING");
             generateNicknames();
             }, Instant.now());
     }
@@ -44,6 +47,8 @@ public class GenerateNicknamesTask implements SchedulingConfigurer {
     public void generateNicknames() {
         ScheduledTask scheduledTask = scheduledTasksRepo.findByTask(SCHEDULED_TASK).orElseThrow(() -> new NotFoundException("Task not found"));
         if(!scheduledTask.isDone()){
+            log.info("TASK " +  SCHEDULED_TASK + " RUNNING");
+
             List<User> users = userRepo.findAll();
 
 //            for (User user : users) {
@@ -54,7 +59,9 @@ public class GenerateNicknamesTask implements SchedulingConfigurer {
 
             for (User user : users) {
                 if(user.getNickname() == null || user.getNickname().isEmpty()) {
-                    userRepo.updateUserNickname(user.getId(), generateUniqueNickname(user.getName()));
+                    String finalNickname = generateUniqueNickname(user.getName());
+                    userRepo.updateUserNickname(user.getId(), finalNickname);
+                    nicknamesArchiveRepo.save(NicknamesArchive.builder().activity(true).nickname(finalNickname).user(user).build());
                 }
             }
 
