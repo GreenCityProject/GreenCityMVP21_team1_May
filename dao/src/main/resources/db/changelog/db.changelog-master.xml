@@ -180,5 +180,6 @@
     <include file="db/changelog/logs/ch-add-user-friends-table-Petukhov.xml"/>
     <include file="db/changelog/logs/ch-add-table-notifications-Mozil.xml"/>
     <include file="db/changelog/logs/ch-crate-event-Mashkin-Andriy.xml"/>
+    <include file="db/changelog/logs/ch-add-table-events-attenders-Petukhov.xml"/>
 </databaseChangeLog>
 

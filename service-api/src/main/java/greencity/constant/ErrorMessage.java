@@ -135,6 +135,8 @@ public final class ErrorMessage {
     public static final String INVALID_DURATION = "The duration for such habit is lower than previously set";
     public static final String EVENT_NOT_FOUND_BY_ID = "Event doesn't exist by this id: ";
     public static final String EVENTS_NOT_SAVED = "Events are not saved";
+    public static final String USER_ALREADY_ATTENDS_EVENT = "User already attends this event";
+    public static final String USER_NOT_ATTENDS_EVENT = "User doesn't attend this event";
 
 
     private ErrorMessage() {

@@ -21,10 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,7 +32,7 @@ public class EventServiceImpl implements EventService {
     private final UserService userService;
     private final RestClient restClient;
     private final FileService fileService;
-    ModelMapper modelMapper = new ModelMapper();
+    private final ModelMapper modelMapper;
 
     @Override
     @Transactional
@@ -132,6 +129,46 @@ public class EventServiceImpl implements EventService {
         eventRepo.save(event);
 
         return modelMapper.map(event, EventCreateDtoResponse.class);
+    }
+
+    @Override
+    public void addAttender(Long eventId, UserVO user) {
+        Event event = eventRepo.findById(eventId)
+                .orElseThrow(() -> new NotFoundException(ErrorMessage.EVENT_NOT_FOUND_BY_ID + eventId));
+
+        if (event.getAttenders().stream().anyMatch(u -> u.getId().equals(user.getId()))) {
+            throw new AlreadyExistException(ErrorMessage.USER_ALREADY_ATTENDS_EVENT);
+        }
+
+        event.getAttenders().add(modelMapper.map(user, User.class));
+        eventRepo.save(event);
+    }
+
+    @Override
+    public void deleteAttender(Long eventId, UserVO user) {
+        Event event = eventRepo.findById(eventId)
+                .orElseThrow(() -> new NotFoundException(ErrorMessage.EVENT_NOT_FOUND_BY_ID + eventId));
+
+        if (event.getAttenders().stream().noneMatch(u -> u.getId().equals(user.getId()))) {
+            throw new NotFoundException(ErrorMessage.USER_NOT_ATTENDS_EVENT);
+        }
+
+        event.getAttenders().removeIf(u -> u.getId().equals(user.getId()));
+        eventRepo.save(event);
+    }
+
+    @Override
+    public List<EventAttenderDto> getAllEventAttenders(Long eventId, UserVO user) {
+        Event event = eventRepo.findById(eventId)
+                .orElseThrow(() -> new NotFoundException(ErrorMessage.EVENT_NOT_FOUND_BY_ID + eventId));
+
+        if (user.getRole() != Role.ROLE_ADMIN && !Objects.equals(user.getId(), event.getOrganizer().getId())) {
+            throw new BadRequestException(ErrorMessage.USER_HAS_NO_PERMISSION);
+        }
+
+        return event.getAttenders().stream()
+                .map(u -> modelMapper.map(u, EventAttenderDto.class))
+                .toList();
     }
 
     private void checkIfEventExistsOrElseThrow(EventCreateDtoRequest dto, List<Event> fetchedEvents) {
