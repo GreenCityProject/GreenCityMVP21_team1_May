@@ -34,6 +34,8 @@ public class GenerateNicknamesTask implements SchedulingConfigurer {
 
     private Set<String> usedNicknames;
 
+    private static final Random random = new Random();
+
     @Override
     @Transactional
     public void configureTasks(@NotNull ScheduledTaskRegistrar taskRegistrar) {
@@ -73,7 +75,7 @@ public class GenerateNicknamesTask implements SchedulingConfigurer {
         String baseNickname = username.toLowerCase().replaceAll("[^a-z0-9]", "");
 
         // todo
-        String candidateNickname = baseNickname + (new Random().nextInt(900) + 100);
+        String candidateNickname = baseNickname + (random.nextInt(900) + 100);
 
         int suffix = 1;
         while (usedNicknames.contains(candidateNickname)) {
