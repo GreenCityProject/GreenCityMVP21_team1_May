@@ -22,6 +22,14 @@ public interface EventService {
     EventCreateDtoResponse update(EventUpdateDtoRequest eventUpdate, MultipartFile[] images, UserVO user);
 
     /**
+     * Method for deleting event by id.
+     *
+     * @param id id of event
+     * @param user {@link UserVO} of authenticated user
+     */
+    void delete(Long id, UserVO user);
+
+    /**
      * Method for adding attender to event.
      *
      * @param eventId id of event
