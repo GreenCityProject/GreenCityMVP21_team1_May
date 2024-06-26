@@ -57,7 +57,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserVO findByEmail(String email) {
         Optional<User> optionalUser = userRepo.findByEmail(email);
-        return optionalUser.isEmpty() ? null : modelMapper.map(optionalUser.get(), UserVO.class);
+        return optionalUser.map(user -> modelMapper.map(user, UserVO.class)).orElse(null);
     }
 
     /**
@@ -193,14 +193,6 @@ public class UserServiceImpl implements UserService {
             .concat(String.valueOf(name.charAt(name.indexOf(" ") + 1)))
             : String.valueOf(name.charAt(0));
         return initials.toUpperCase();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void updateEventOrganizerRating(Long eventOrganizerId, Double rate) {
-        userRepo.updateUserEventOrganizerRating(eventOrganizerId, rate);
     }
 
     @Override

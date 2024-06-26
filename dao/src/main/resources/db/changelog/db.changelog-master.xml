@@ -180,5 +180,7 @@
     <include file="db/changelog/logs/ch-add-user-friends-table-Petukhov.xml"/>
     <include file="db/changelog/logs/ch-add-table-notifications-Mozil.xml"/>
     <include file="db/changelog/logs/ch-crate-event-Mashkin-Andriy.xml"/>
+    <include file="db/changelog/logs/ch-add-event-organizer-rating-Rozhko.xml"/>
+    <include file="db/changelog/logs/ch-remove-event-organizer-rating-column-in-users-Rozhko.xml"/>
 </databaseChangeLog>
 

@@ -99,18 +99,6 @@ public interface UserRepo extends JpaRepository<User, Long>, JpaSpecificationExe
     Optional<Timestamp> findLastActivityTimeById(Long userId);
 
     /**
-     * Updates user rating as event organizer.
-     *
-     * @param userId {@link User}'s id
-     * @param rate   new {@link User}'s rating as event organizer
-     * @author Danylo Hlynskyi
-     */
-    @Modifying
-    @Transactional
-    @Query(value = "UPDATE User SET eventOrganizerRating=:rate WHERE id=:userId")
-    void updateUserEventOrganizerRating(Long userId, Double rate);
-
-    /**
      * Retrieves the list of the user's friends (which have INPROGRESS assign to the
      * habit).
      *

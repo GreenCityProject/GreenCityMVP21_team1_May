@@ -77,11 +77,10 @@ import java.util.Set;
 @Table(name = "users")
 @EqualsAndHashCode(
     exclude = {"verifyEmail", "ownSecurity", "ecoNewsLiked", "ecoNewsCommentsLiked",
-        "refreshTokenKey", "verifyEmail", "estimates", "restorePasswordEmail", "customShoppingListItems",
-        "eventOrganizerRating"})
+        "refreshTokenKey", "verifyEmail", "restorePasswordEmail", "customShoppingListItems"})
 @ToString(
     exclude = {"verifyEmail", "ownSecurity", "refreshTokenKey", "ecoNewsLiked", "ecoNewsCommentsLiked",
-        "verifyEmail", "estimates", "restorePasswordEmail", "customShoppingListItems", "eventOrganizerRating"})
+        "verifyEmail", "restorePasswordEmail", "customShoppingListItems"})
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -155,9 +154,6 @@ public class User {
 
     @Column(name = "last_activity_time")
     private LocalDateTime lastActivityTime;
-
-    @Column(name = "event_organizer_rating")
-    private Double eventOrganizerRating;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Filter> filters = new ArrayList<>();
