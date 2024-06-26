@@ -3,6 +3,7 @@ package greencity.service;
 import greencity.client.RestClient;
 import greencity.constant.ErrorMessage;
 import greencity.dto.event.*;
+import greencity.dto.notifications.CreateNotificationDto;
 import greencity.dto.user.NotificationDto;
 import greencity.dto.user.UserVO;
 import greencity.entity.*;
@@ -21,6 +22,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -33,6 +36,7 @@ public class EventServiceImpl implements EventService {
     private final RestClient restClient;
     private final FileService fileService;
     private final ModelMapper modelMapper;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -129,6 +133,24 @@ public class EventServiceImpl implements EventService {
         eventRepo.save(event);
 
         return modelMapper.map(event, EventCreateDtoResponse.class);
+    }
+
+    @Override
+    public void delete(Long id, UserVO user) {
+        Event event = eventRepo.findById(id)
+                .orElseThrow(() -> new NotFoundException(ErrorMessage.EVENT_NOT_FOUND_BY_ID + id));
+
+        if (user.getRole() != Role.ROLE_ADMIN && !Objects.equals(user.getId(), event.getOrganizer().getId())) {
+            throw new BadRequestException(ErrorMessage.USER_HAS_NO_PERMISSION);
+        }
+
+        LocalDateTime eventCancellationTime = LocalDateTime.now();
+
+        event.getAttenders().forEach(attender ->
+            sendEventCanceledNotification(event, user, attender, eventCancellationTime)
+        );
+
+        eventRepo.delete(event);
     }
 
     @Override
@@ -276,5 +298,39 @@ public class EventServiceImpl implements EventService {
                 .body(emailContent)
                 .title(String.format("Event \"%s...\" created", event.getTitle()))
                 .build();
+    }
+
+    private void sendEventCanceledNotification(Event event, UserVO userVO, User user, LocalDateTime eventCancellationTime) {
+        CreateNotificationDto notification = CreateNotificationDto.builder()
+                .userId(user.getId())
+                .senderId(userVO.getId())
+                .section("GreenCity")
+                .title("Event was canceled")
+                .message(String.format("Unfortunately, event %s was cancelled. %s", event.getTitle(), getFormattedDateTime(eventCancellationTime)))
+                .build();
+
+        notificationService.save(notification);
+    }
+
+    private String getFormattedDateTime(LocalDateTime time) {
+        LocalDate today = LocalDate.now();
+        LocalDate yesterday = today.minusDays(1);
+        LocalDate eventDate = time.toLocalDate();
+        LocalDate tomorrow = today.plusDays(1);
+
+        String formattedDate;
+        if (eventDate.equals(today)) {
+            formattedDate = "Today";
+        } else if (eventDate.equals(yesterday)) {
+            formattedDate = "Yesterday";
+        } else if (eventDate.equals(tomorrow)) {
+            formattedDate = "Tomorrow";
+        } else {
+            formattedDate = eventDate.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+        }
+
+        String formattedTime = time.format(DateTimeFormatter.ofPattern("hh:mm a", Locale.ENGLISH));
+
+        return formattedDate + " " + formattedTime;
     }
 }
