@@ -3,6 +3,7 @@ package greencity.controller;
 import greencity.annotations.MultipartValidation;
 import greencity.constant.HttpStatuses;
 import greencity.annotations.CurrentUser;
+import greencity.dto.event.EventAttenderDto;
 import greencity.dto.event.EventCreateDtoRequest;
 import greencity.dto.event.EventCreateDtoResponse;
 import greencity.dto.event.EventUpdateDtoRequest;
@@ -117,5 +118,73 @@ public class EventController {
             @Parameter(hidden = true) @CurrentUser UserVO user
     ){
         return ResponseEntity.status(HttpStatus.OK).body(eventService.update(eventUpdate, images, user));
+    }
+
+    /**
+     * Method for adding an attender to the event.
+     *
+     * @author Maksym Petukhov.
+     */
+    @Operation(summary = "Add an attender to the event")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
+            @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
+    })
+    @PostMapping("/attenders/{eventId}")
+    public void addAttender(@PathVariable Long eventId, @Parameter(hidden = true) @CurrentUser UserVO user) {
+        eventService.addAttender(eventId, user);
+    }
+
+    /**
+     * Method for deleting an attender from the event.
+     *
+     * @param eventId id of event
+     * @param user    {@link UserVO} of authenticated user
+     */
+    @Operation(summary = "Delete an attender from the event")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
+            @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
+    })
+    @DeleteMapping("/attenders/{eventId}")
+    public void deleteAttender(@PathVariable Long eventId, @Parameter(hidden = true) @CurrentUser UserVO user) {
+        eventService.deleteAttender(eventId, user);
+    }
+
+    /**
+     * Method for getting all event attenders by event id.
+     *
+     * @param eventId id of event
+     * @return list of {@link UserVO}
+     */
+    @Operation(summary = "Get all event attenders by event id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
+            @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
+    })
+    @GetMapping("/attenders/{eventId}")
+    public ResponseEntity<List<EventAttenderDto>> getAllEventAttenders(@PathVariable Long eventId,
+                                                                       @Parameter(hidden = true) @CurrentUser UserVO user){
+        return ResponseEntity.status(HttpStatus.OK).body(eventService.getAllEventAttenders(eventId, user));
+    }
+
+    /**
+     * Method for deleting event by id.
+     *
+     * @param eventId id of event
+     * @param user {@link UserVO} of authenticated user
+     */
+    @Operation(summary = "Delete event by id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
+            @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
+    })
+    @DeleteMapping("/{eventId}")
+    public void deleteEvent(@PathVariable Long eventId, @Parameter(hidden = true) @CurrentUser UserVO user){
+        eventService.delete(eventId, user);
     }
 }

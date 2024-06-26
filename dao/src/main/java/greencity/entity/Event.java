@@ -8,7 +8,9 @@ import org.hibernate.annotations.SourceType;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @NoArgsConstructor
@@ -53,6 +55,12 @@ public class Event {
     @Column(name = "additional_images_id")
     @OneToMany(mappedBy = "event", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AdditionalImage> additionalImages = new ArrayList<>();
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "events_attenders",
+            joinColumns = @JoinColumn(name = "event_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id"))
+    private Set<User> attenders = new HashSet<>();
 
     public void setDates(@Size(min = 1, max = 7, message = "Must add from 1 to 7 sets of date, time and location parameters") List<EventDateLocation> dates) {
         if (this.dates != null) {
