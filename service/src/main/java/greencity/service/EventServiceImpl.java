@@ -3,6 +3,7 @@ package greencity.service;
 import greencity.client.RestClient;
 import greencity.constant.ErrorMessage;
 import greencity.dto.event.*;
+import greencity.dto.notifications.CreateNotificationDto;
 import greencity.dto.user.NotificationDto;
 import greencity.dto.user.UserVO;
 import greencity.entity.*;
@@ -21,6 +22,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -31,6 +35,7 @@ public class EventServiceImpl implements EventService {
     private final EventRepo eventRepo;
     private final UserService userService;
     private final RestClient restClient;
+    private final NotificationService notificationService;
     private final FileService fileService;
     private final ModelMapper modelMapper;
 
@@ -93,15 +98,14 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventCreateDtoResponse findEventById(Long id) {
         Optional<Event> event = eventRepo.findById(id);
-        if(event.isPresent()) {
+        if (event.isPresent()) {
             return modelMapper.map(event.get(), EventCreateDtoResponse.class);
-        }
-        else throw new NotFoundException(ErrorMessage.EVENT_NOT_FOUND_BY_ID + id);
+        } else throw new NotFoundException(ErrorMessage.EVENT_NOT_FOUND_BY_ID + id);
     }
 
     @Override
     @Transactional
-    public EventCreateDtoResponse update(EventUpdateDtoRequest eventUpdate, MultipartFile[] images, UserVO user){
+    public EventCreateDtoResponse update(EventUpdateDtoRequest eventUpdate, MultipartFile[] images, UserVO user) {
         Long eventId = eventUpdate.getId();
         Event event = eventRepo.findById(eventId).orElseThrow(() -> new NotFoundException(ErrorMessage.EVENT_NOT_FOUND_BY_ID + eventId));
 
@@ -116,9 +120,13 @@ public class EventServiceImpl implements EventService {
         List<AdditionalImage> additionalImageList = additionalImagesLinks.size() > 1 ?
                 additionalImagesLinks.subList(1, additionalImagesLinks.size()) : new ArrayList<>();
 
-        for(AdditionalImage a: additionalImageList){
+        for (AdditionalImage a : additionalImageList) {
             a.setEvent(event);
         }
+
+        event.getAttenders().forEach(attender ->
+                sendUpdateNotification(attender, user, event, eventUpdate)
+        );
 
         event.setTitle(eventUpdate.getTitle());
         event.setDescription(eventUpdate.getDescription());
@@ -129,6 +137,33 @@ public class EventServiceImpl implements EventService {
         eventRepo.save(event);
 
         return modelMapper.map(event, EventCreateDtoResponse.class);
+    }
+
+    private void sendUpdateNotification(User attender, UserVO user, Event event, EventUpdateDtoRequest eventUpdate) {
+        CreateNotificationDto.CreateNotificationDtoBuilder notificationBuilder = CreateNotificationDto.builder()
+                .userId(attender.getId())
+                .senderId(user.getId())
+                .section("GreenCity")
+                .title("Event updated");
+
+        if (eventChangedName(event, eventUpdate)) {
+            if (eventChangedDateTime(event, eventUpdate)) {
+                notificationBuilder.message(String.format("Event \"%s\" was updated. New name is \"%s\". New date is \"%s\".",
+                        event.getTitle(), eventUpdate.getTitle(), getFormattedDateTime(eventUpdate.getDates().getFirst().getStartTime())));
+            } else {
+                notificationBuilder.message(String.format("Event \"%s\" was updated. New name is \"%s\". %s",
+                        event.getTitle(), eventUpdate.getTitle(), getFormattedDateTime(event.getDates().getFirst().getStartTime())));
+            }
+        } else if (eventChangedDateTime(event, eventUpdate)) {
+            notificationBuilder.message(String.format("Date and time for event \"%s\" was updated. New date and time is \"%s\".",
+                    event.getTitle(), getFormattedDateTime(eventUpdate.getDates().getFirst().getStartTime())));
+        } else if (eventChangedLocation(event, eventUpdate)) {
+            notificationBuilder.message(String.format("Location for event \"%s\" was updated. New location is \"%s\". %s",
+                    event.getTitle(), eventUpdate.getDates().getFirst().getAddress().getFormattedAddressEn(), getFormattedDateTime(eventUpdate.getDates().getFirst().getStartTime())));
+        }
+
+        CreateNotificationDto notification = notificationBuilder.build();
+        notificationService.save(notification);
     }
 
     @Override
@@ -183,7 +218,7 @@ public class EventServiceImpl implements EventService {
         }
     }
 
-    List<EventDateLocation> convertLocationList(EventUpdateDtoRequest eventUpdate, Event event){
+    List<EventDateLocation> convertLocationList(EventUpdateDtoRequest eventUpdate, Event event) {
         List<EventDateLocation> eventDateLocationList = new ArrayList<>();
         for (EventDateLocationDtoRequest e : eventUpdate.getDates()) {
             EventDateLocation eventDateLocation = modelMapper.map(e, EventDateLocation.class);
@@ -276,5 +311,38 @@ public class EventServiceImpl implements EventService {
                 .body(emailContent)
                 .title(String.format("Event \"%s...\" created", event.getTitle()))
                 .build();
+    }
+    private String getFormattedDateTime(LocalDateTime time) {
+        LocalDate today = LocalDate.now();
+        LocalDate yesterday = today.minusDays(1);
+        LocalDate eventDate = time.toLocalDate();
+        LocalDate tomorrow = today.plusDays(1);
+
+        String formattedDate;
+        if (eventDate.equals(today)) {
+            formattedDate = "Today";
+        } else if (eventDate.equals(yesterday)) {
+            formattedDate = "Yesterday";
+        } else if (eventDate.equals(tomorrow)) {
+            formattedDate = "Tomorrow";
+        } else {
+            formattedDate = eventDate.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+        }
+
+        String formattedTime = time.format(DateTimeFormatter.ofPattern("hh:mm a", Locale.ENGLISH));
+
+        return formattedDate + " " + formattedTime;
+    }
+
+    private boolean eventChangedName(Event event, EventUpdateDtoRequest eventUpdate) {
+        return !event.getTitle().equals(eventUpdate.getTitle());
+    }
+
+    private boolean eventChangedDateTime(Event event, EventUpdateDtoRequest eventUpdate) {
+        return !event.getDates().getFirst().getStartTime().equals(eventUpdate.getDates().getFirst().getStartTime());
+    }
+
+    private boolean eventChangedLocation(Event event, EventUpdateDtoRequest eventUpdate) {
+        return !event.getDates().getFirst().getAddress().getFormattedAddressEn().equals(eventUpdate.getDates().getFirst().getAddress().getFormattedAddressEn());
     }
 }
