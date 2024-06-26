@@ -170,4 +170,21 @@ public class EventController {
                                                                        @Parameter(hidden = true) @CurrentUser UserVO user){
         return ResponseEntity.status(HttpStatus.OK).body(eventService.getAllEventAttenders(eventId, user));
     }
+
+    /**
+     * Method for deleting event by id.
+     *
+     * @param eventId id of event
+     * @param user {@link UserVO} of authenticated user
+     */
+    @Operation(summary = "Delete event by id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
+            @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
+    })
+    @DeleteMapping("/{eventId}")
+    public void deleteEvent(@PathVariable Long eventId, @Parameter(hidden = true) @CurrentUser UserVO user){
+        eventService.delete(eventId, user);
+    }
 }
