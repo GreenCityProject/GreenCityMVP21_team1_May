@@ -49,15 +49,11 @@ public class GenerateNicknamesTask implements SchedulingConfigurer {
     public void generateNicknames() {
         ScheduledTask scheduledTask = scheduledTasksRepo.findByTask(SCHEDULED_TASK).orElseThrow(() -> new NotFoundException("Task not found"));
         if(!scheduledTask.isDone()){
-            log.info("TASK " +  SCHEDULED_TASK + " RUNNING");
+            log.info("TASK '" +  SCHEDULED_TASK + "' RUNNING");
 
             List<User> users = userRepo.findAll();
 
-//            for (User user : users) {
-//                userRepo.updateUserNickname(user.getId(), null);
-//            }
-
-            usedNicknames.addAll(users.stream().map(User::getNickname).filter(Objects::nonNull).toList());
+            usedNicknames.addAll(nicknamesArchiveRepo.findAll().stream().map(NicknamesArchive::getNickname).filter(Objects::nonNull).toList());
 
             for (User user : users) {
                 if(user.getNickname() == null || user.getNickname().isEmpty()) {
@@ -74,7 +70,6 @@ public class GenerateNicknamesTask implements SchedulingConfigurer {
     public String generateUniqueNickname(String username) {
         String baseNickname = username.toLowerCase().replaceAll("[^a-z0-9]", "");
 
-        // todo
         String candidateNickname = baseNickname + (random.nextInt(900) + 100);
 
         int suffix = 1;
