@@ -180,5 +180,9 @@
     <include file="db/changelog/logs/ch-add-user-friends-table-Petukhov.xml"/>
     <include file="db/changelog/logs/ch-add-table-notifications-Mozil.xml"/>
     <include file="db/changelog/logs/ch-crate-event-Mashkin-Andriy.xml"/>
+    <include file="db/changelog/logs/ch-add-table-event-comment-Fedotov.xml"/>
+    <include file="db/changelog/logs/ch-add-column-nickname-to-user-Fedotov.xml"/>
+    <include file="db/changelog/logs/ch-add-table-scheduled-tasks-Fedotov.xml"/>
+    <include file="db/changelog/logs/ch-add-table-nicknames-archive-Fedotov.xml"/>
 </databaseChangeLog>
 
