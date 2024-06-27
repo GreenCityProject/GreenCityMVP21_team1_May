@@ -20,4 +20,6 @@ public interface EventService {
     EventCreateDtoResponse findEventById(Long id);
 
     EventCreateDtoResponse update(EventUpdateDtoRequest eventUpdate, MultipartFile[] images, UserVO user);
+
+    void delete(Long eventId, String name);
 }
