@@ -10,6 +10,7 @@ import greencity.enums.Role;
 import greencity.exception.exceptions.BadRequestException;
 import greencity.exception.exceptions.NotFoundException;
 import greencity.exception.exceptions.AlreadyExistException;
+import greencity.message.EventUpdateNotification;
 import greencity.repository.EventRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -127,8 +128,16 @@ public class EventServiceImpl implements EventService {
         event.setAdditionalImages(additionalImageList);
 
         eventRepo.save(event);
+        sendEventUpdateNotification(event);
 
         return modelMapper.map(event, EventCreateDtoResponse.class);
+    }
+
+    private void sendEventUpdateNotification(Event event) {
+        List<EventUpdateNotification> eventUpdateNotifications = event.getAttenders().stream()
+            .map(attender -> new EventUpdateNotification(attender.getEmail(), attender.getName(), event.getTitle()))
+            .toList();
+        restClient.sendEventUpdateNotification(eventUpdateNotifications);
     }
 
     @Override

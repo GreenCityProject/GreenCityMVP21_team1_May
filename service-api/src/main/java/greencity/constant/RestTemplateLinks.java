@@ -15,6 +15,7 @@ public class RestTemplateLinks {
     public static final String QUERY = "&query=";
     public static final String SEARCH_BY = "/user/searchBy";
     public static final String SEND_REPORT = "/email/sendReport";
+    public static final String SEND_EVENT_UPDATE_NOTIFICATION = "/email/sendEventUpdateNotification";
     public static final String SEND_HABIT_NOTIFICATION = "/email/sendHabitNotification";
     public static final String USER = "/user";
     public static final String USER_FIND_ALL = "user/findAll";
