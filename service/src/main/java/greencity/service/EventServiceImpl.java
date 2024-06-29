@@ -2,19 +2,26 @@ package greencity.service;
 
 import greencity.client.RestClient;
 import greencity.constant.ErrorMessage;
-import greencity.dto.event.*;
+import greencity.dto.PageableAdvancedDto;
+import greencity.dto.event.EventCreateDtoRequest;
+import greencity.dto.event.EventCreateDtoResponse;
+import greencity.dto.event.EventDateLocationDtoRequest;
+import greencity.dto.event.EventUpdateDtoRequest;
+import greencity.dto.shoppinglistitem.ShoppingListItemManagementDto;
 import greencity.dto.user.NotificationDto;
 import greencity.dto.user.UserVO;
 import greencity.entity.*;
 import greencity.enums.Role;
+import greencity.exception.exceptions.AlreadyExistException;
 import greencity.exception.exceptions.BadRequestException;
 import greencity.exception.exceptions.NotFoundException;
-import greencity.exception.exceptions.AlreadyExistException;
 import greencity.repository.EventRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -80,7 +87,7 @@ public class EventServiceImpl implements EventService {
         event.setDates(eventDateLocationList);
         event = eventRepo.save(event);
 
-        //restClient.sendNotificationToUser(prepareNotificationFromEvent(event), organiser.getEmail());
+        restClient.sendNotificationToUser(prepareNotificationFromEvent(event), organiser.getEmail());
 
         return modelMapper.map(event, EventCreateDtoResponse.class);
     }
@@ -134,6 +141,30 @@ public class EventServiceImpl implements EventService {
         return modelMapper.map(event, EventCreateDtoResponse.class);
     }
 
+    @Override
+    @Transactional
+    public PageableAdvancedDto<EventCreateDtoResponse> findEventByQuery(String query, Pageable pageable) {
+        var r1 = eventRepo.findByTitleContaining(query, pageable);
+        var r = r1.stream()
+                .map(x -> modelMapper.map(x, EventCreateDtoResponse.class))
+                .toList();
+
+        return getPageableAdvancedDto(r, r1);
+    }
+
+    private PageableAdvancedDto<EventCreateDtoResponse> getPageableAdvancedDto(
+            List<EventCreateDtoResponse> eventCreateDtoResponseList, Page<Event> events) {
+        return new PageableAdvancedDto<>(
+                eventCreateDtoResponseList,
+                events.getTotalElements(),
+                events.getPageable().getPageNumber(),
+                events.getTotalPages(),
+                events.getNumber(),
+                events.hasPrevious(),
+                events.hasNext(),
+                events.isFirst(),
+                events.isLast());
+    }
     private void checkIfEventExistsOrElseThrow(EventCreateDtoRequest dto, List<Event> fetchedEvents) {
         if (fetchedEvents.isEmpty()) return;
 

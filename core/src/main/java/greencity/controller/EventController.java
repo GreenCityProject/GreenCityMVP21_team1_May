@@ -1,8 +1,10 @@
 package greencity.controller;
 
 import greencity.annotations.MultipartValidation;
+import greencity.annotations.ValidStringLength;
 import greencity.constant.HttpStatuses;
 import greencity.annotations.CurrentUser;
+import greencity.dto.PageableAdvancedDto;
 import greencity.dto.event.EventCreateDtoRequest;
 import greencity.dto.event.EventCreateDtoResponse;
 import greencity.dto.event.EventUpdateDtoRequest;
@@ -16,7 +18,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
+import jakarta.websocket.server.PathParam;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -117,5 +121,24 @@ public class EventController {
             @Parameter(hidden = true) @CurrentUser UserVO user
     ){
         return ResponseEntity.status(HttpStatus.OK).body(eventService.update(eventUpdate, images, user));
+    }
+
+    /**
+     * Method for searching for the event by key words.
+     *
+     * @return object of {@link EventCreateDtoResponse}
+     * @author Mashkin Andriy
+     */
+    @Operation(summary = "Search the event by key words")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
+            @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
+    })
+    @GetMapping("/search")
+    public ResponseEntity<PageableAdvancedDto<EventCreateDtoResponse>> getEventByQuery(
+            @ValidStringLength(min = 1, max = 30, excludeHtml = false) @PathParam("query") String query,
+            Pageable pageable) {
+        return ResponseEntity.status(HttpStatus.OK).body(eventService.findEventByQuery(query, pageable));
     }
 }
