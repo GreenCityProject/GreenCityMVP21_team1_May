@@ -17,9 +17,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import jakarta.websocket.server.PathParam;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -28,6 +30,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static greencity.constant.EventConstants.*;
@@ -137,8 +140,10 @@ public class EventController {
     })
     @GetMapping("/search")
     public ResponseEntity<PageableAdvancedDto<EventCreateDtoResponse>> getEventByQuery(
-            @ValidStringLength(min = 1, max = 30, excludeHtml = false) @PathParam("query") String query,
+            @Pattern(regexp = "^[a-zA-Zа-яА-ЯіІїЇєЄґҐ .'-]{1,30}$",
+                    message = "Query allows only 1-30 symbols: ENG and UKR alphabetic characters, a dot, a space, apostrophe and hyphen")
+            @PathParam("query") String query,
             Pageable pageable) {
-        return ResponseEntity.status(HttpStatus.OK).body(eventService.findEventByQuery(query, pageable));
+        return ResponseEntity.status(HttpStatus.OK).body(eventService.findEventByQuery(Arrays.stream(query.split(" ")).toList(), pageable));
     }
 }

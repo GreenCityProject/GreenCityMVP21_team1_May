@@ -7,7 +7,11 @@ import greencity.dto.event.EventCreateDtoRequest;
 import greencity.dto.event.EventCreateDtoResponse;
 import greencity.dto.event.EventDateLocationDtoRequest;
 import greencity.dto.event.EventUpdateDtoRequest;
-import greencity.dto.shoppinglistitem.ShoppingListItemManagementDto;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import org.springframework.data.jpa.domain.Specification;
 import greencity.dto.user.NotificationDto;
 import greencity.dto.user.UserVO;
 import greencity.entity.*;
@@ -143,15 +147,49 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional
-    public PageableAdvancedDto<EventCreateDtoResponse> findEventByQuery(String query, Pageable pageable) {
-        var r1 = eventRepo.findByTitleContaining(query, pageable);
-        var r = r1.stream()
-                .map(x -> modelMapper.map(x, EventCreateDtoResponse.class))
+    public PageableAdvancedDto<EventCreateDtoResponse> findEventByQuery(List<String> words, Pageable pageable) {
+        Specification<Event> spec = prepareWhereConditions(words);
+        Page<Event> eventsPage = eventRepo.findAll(spec, pageable);
+        log.error(eventsPage.getContent().stream()
+                .map(event -> modelMapper.map(event, EventCreateDtoResponse.class))
+                .map(EventCreateDtoResponse::getId)
+                .toList().toString());
+
+        List<EventCreateDtoResponse> sortedEvents = eventsPage.getContent().stream()
+                .sorted((e1, e2) -> {
+                    long count1 = words.stream()
+                            .mapToLong(word -> countOccurrences(e1.getTitle().toLowerCase(), word.toLowerCase()))
+                            .sum();
+                    long count2 = words.stream()
+                            .mapToLong(word -> countOccurrences(e2.getTitle().toLowerCase(), word.toLowerCase()))
+                            .sum();
+                    return Long.compare(count2, count1); // descending order
+                })
+                .map(event -> modelMapper.map(event, EventCreateDtoResponse.class))
                 .toList();
 
-        return getPageableAdvancedDto(r, r1);
+        log.error(sortedEvents.stream().map(EventCreateDtoResponse::getId).toList().toString());
+        return getPageableAdvancedDto(sortedEvents, eventsPage);
     }
 
+    private long countOccurrences(String text, String word) {
+        int count = 0;
+        int idx = 0;
+        while ((idx = text.indexOf(word, idx)) != -1) {
+            count++;
+            idx += word.length();
+        }
+        return count;
+    }
+    private Specification<Event> prepareWhereConditions(List<String> words) {
+        return (Root<Event> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) -> {
+            Predicate[] predicates = new Predicate[words.size()];
+            for (int i = 0; i < words.size(); i++) {
+                predicates[i] = criteriaBuilder.like(criteriaBuilder.lower(root.get("title")), "%" + words.get(i).toLowerCase() + "%");
+            }
+            return criteriaBuilder.and(predicates);
+        };
+    }
     private PageableAdvancedDto<EventCreateDtoResponse> getPageableAdvancedDto(
             List<EventCreateDtoResponse> eventCreateDtoResponseList, Page<Event> events) {
         return new PageableAdvancedDto<>(
