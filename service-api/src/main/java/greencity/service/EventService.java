@@ -22,5 +22,5 @@ public interface EventService {
 
     EventCreateDtoResponse update(EventUpdateDtoRequest eventUpdate, MultipartFile[] images, UserVO user);
 
-    PageableAdvancedDto<EventCreateDtoResponse> findEventByQuery(List<String> words, Pageable pageable);
+    PageableAdvancedDto<EventCreateDtoResponse> findEventByQuery(String query, Pageable pageable);
 }

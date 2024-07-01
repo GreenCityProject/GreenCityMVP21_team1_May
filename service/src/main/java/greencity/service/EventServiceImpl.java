@@ -7,10 +7,14 @@ import greencity.dto.event.EventCreateDtoRequest;
 import greencity.dto.event.EventCreateDtoResponse;
 import greencity.dto.event.EventDateLocationDtoRequest;
 import greencity.dto.event.EventUpdateDtoRequest;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import greencity.dto.user.NotificationDto;
 import greencity.dto.user.UserVO;
@@ -32,10 +36,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -147,15 +148,13 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional
-    public PageableAdvancedDto<EventCreateDtoResponse> findEventByQuery(List<String> words, Pageable pageable) {
-        Specification<Event> spec = prepareWhereConditions(words);
-        Page<Event> eventsPage = eventRepo.findAll(spec, pageable);
-        log.error(eventsPage.getContent().stream()
-                .map(event -> modelMapper.map(event, EventCreateDtoResponse.class))
-                .map(EventCreateDtoResponse::getId)
-                .toList().toString());
+    public PageableAdvancedDto<EventCreateDtoResponse> findEventByQuery(String query, Pageable pageable) {
+        List<String> words = Arrays.stream(query.split(" ")).toList();
+        List<Event> events = eventRepo.findAll(prepareWhereConditions(words));
 
-        List<EventCreateDtoResponse> sortedEvents = eventsPage.getContent().stream()
+        var l1 = events.stream().map(Event::getId).toList().toString();
+
+        List<EventCreateDtoResponse> sortedEvents = events.stream()
                 .sorted((e1, e2) -> {
                     long count1 = words.stream()
                             .mapToLong(word -> countOccurrences(e1.getTitle().toLowerCase(), word.toLowerCase()))
@@ -168,14 +167,40 @@ public class EventServiceImpl implements EventService {
                 .map(event -> modelMapper.map(event, EventCreateDtoResponse.class))
                 .toList();
 
+        log.error(l1);
         log.error(sortedEvents.stream().map(EventCreateDtoResponse::getId).toList().toString());
-        return getPageableAdvancedDto(sortedEvents, eventsPage);
+
+
+        long offset = (long) pageable.getPageNumber() * pageable.getPageSize();
+        List<EventCreateDtoResponse> page = sortedEvents.stream()
+                .skip(offset)
+                .limit(pageable.getPageSize())
+                .toList();
+        long totalElements = events.size();
+        int currentPage = pageable.getPageNumber();
+        int totalPages = (int) Math.ceil((double) (events.size()) / pageable.getPageSize());
+        int number = pageable.getPageNumber();
+        boolean hasPrevious = number != 0;
+        boolean hasNext = number < totalPages - 1;
+        boolean first = number == 0;
+        boolean last = number == totalPages - 1;
+
+        return new PageableAdvancedDto<>(
+                page,
+                totalElements,
+                currentPage,
+                totalPages,
+                number,
+                hasPrevious,
+                hasNext,
+                first,
+                last);
     }
 
-    private long countOccurrences(String text, String word) {
+    private long countOccurrences(String title, String word) {
         int count = 0;
         int idx = 0;
-        while ((idx = text.indexOf(word, idx)) != -1) {
+        while ((idx = title.indexOf(word, idx)) != -1) {
             count++;
             idx += word.length();
         }

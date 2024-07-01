@@ -144,6 +144,6 @@ public class EventController {
                     message = "Query allows only 1-30 symbols: ENG and UKR alphabetic characters, a dot, a space, apostrophe and hyphen")
             @PathParam("query") String query,
             Pageable pageable) {
-        return ResponseEntity.status(HttpStatus.OK).body(eventService.findEventByQuery(Arrays.stream(query.split(" ")).toList(), pageable));
+        return ResponseEntity.status(HttpStatus.OK).body(eventService.findEventByQuery(query, pageable));
     }
 }
