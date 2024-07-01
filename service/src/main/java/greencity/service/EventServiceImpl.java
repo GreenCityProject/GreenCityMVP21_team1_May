@@ -177,9 +177,9 @@ public class EventServiceImpl implements EventService {
                 .limit(pageable.getPageSize())
                 .toList();
         long totalElements = events.size();
-        int currentPage = pageable.getPageNumber();
-        int totalPages = (int) Math.ceil((double) (events.size()) / pageable.getPageSize());
-        int number = pageable.getPageNumber();
+        int currentPage = pageable.getPageNumber();// from 0 to last
+        int totalPages = (int) Math.ceil((double) (events.size()) / pageable.getPageSize());//amount of pages
+        int number = pageable.getPageNumber();//same as currentPage
         boolean hasPrevious = number != 0;
         boolean hasNext = number < totalPages - 1;
         boolean first = number == 0;
