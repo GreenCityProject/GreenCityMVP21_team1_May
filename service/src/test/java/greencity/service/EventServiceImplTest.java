@@ -3,6 +3,10 @@ package greencity.service;
 import greencity.client.RestClient;
 import greencity.dto.user.NotificationDto;
 import greencity.dto.user.UserVO;
+import greencity.entity.Event;
+import greencity.entity.User;
+import greencity.exception.exceptions.NotFoundException;
+import greencity.exception.exceptions.UserHasNoPermissionToAccessException;
 import greencity.repository.EventRepo;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
@@ -14,8 +18,10 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Optional;
+
 import static greencity.ModelUtils.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -73,5 +79,56 @@ class EventServiceImplTest {
         verify(fileService, times(2)).upload(any(MultipartFile.class));
         verify(eventRepo).save(event);
         verify(restClient).sendNotificationToUser(any(NotificationDto.class), eq(principal));
+    }
+
+    @Test
+    public void deleteEventNotFound_ShouldThrowNotFoundException() {
+        Long eventId = 1L;
+        String email = "user@domain.com";
+
+        when(userService.findByEmail(email)).thenReturn(new UserVO());
+        when(eventRepo.findById(eventId)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> {
+            eventService.delete(eventId, email);
+        });
+    }
+
+    @Test
+    public void deleteEventUserNotPermitted_ShouldThrowUserHasNoPermissionException() {
+        Long eventId = 1L;
+        String email = "user@domain.com";
+        UserVO user = new UserVO();
+        Event event = new Event();
+        User organizer = new User();
+        organizer.setId(2L);
+        event.setOrganizer(organizer);
+        user.setId(1L);
+
+        when(userService.findByEmail(email)).thenReturn(user);
+        when(eventRepo.findById(eventId)).thenReturn(Optional.of(event));
+
+        assertThrows(UserHasNoPermissionToAccessException.class, () -> {
+            eventService.delete(eventId, email);
+        });
+    }
+
+    @Test
+    public void deleteEventSuccess_NoException() {
+        Long eventId = 1L;
+        String email = "user@domain.com";
+        UserVO user = new UserVO();
+        Event event = new Event();
+        User organizer = new User();
+        organizer.setId(1L);
+        event.setOrganizer(organizer);
+        user.setId(1L);
+
+        when(userService.findByEmail(email)).thenReturn(user);
+        when(eventRepo.findById(eventId)).thenReturn(Optional.of(event));
+
+        assertDoesNotThrow(() -> {
+            eventService.delete(eventId, email);
+        });
     }
 }

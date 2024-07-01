@@ -24,10 +24,12 @@ import java.util.Locale;
 
 import static greencity.ModelUtils.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -91,5 +93,18 @@ class EventControllerTest {
                 .andExpect(content().json(dtoResponseJson));
 
         verify(eventService).create(any(), any(), any());
+    }
+
+    @Test
+    void deleteEvent_validRequest_200Ok() throws Exception {
+        Long eventId = 1L;
+
+        mockMvc.perform(delete(EVENT_LINK + "/" + eventId)
+                        .with(csrf())
+                        .principal(() -> "username")
+                        .accept(APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        verify(eventService).delete(eq(eventId), any());
     }
 }

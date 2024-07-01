@@ -5,6 +5,7 @@ import greencity.annotations.ValidStringLength;
 import greencity.constant.HttpStatuses;
 import greencity.annotations.CurrentUser;
 import greencity.dto.PageableAdvancedDto;
+import greencity.dto.PageableAdvancedDto;
 import greencity.dto.event.EventCreateDtoRequest;
 import greencity.dto.event.EventCreateDtoResponse;
 import greencity.dto.event.EventUpdateDtoRequest;
@@ -13,28 +14,35 @@ import greencity.service.EventService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import jakarta.websocket.server.PathParam;
 import jakarta.websocket.server.PathParam;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Arrays;
 import java.util.List;
+import java.security.Principal;
 
 import static greencity.constant.EventConstants.*;
 
+@Validated
 @RestController
 @RequestMapping("/event")
 @AllArgsConstructor
@@ -127,6 +135,31 @@ public class EventController {
     }
 
     /**
+     * Method for deleting an event by a given Event ID.
+     *
+     * @param eventId the ID of the event to be deleted.
+     * @param principal is automatically inserted via SecurityContextHolder, in this context - the user's name.
+     * @return ResponseEntity<Object> this returns server's response which denotes the status of the operation.
+     */
+    @Operation(summary = "Delete event")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+            @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST,
+                    content = @Content(examples = @ExampleObject(HttpStatuses.BAD_REQUEST))),
+            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED,
+                    content = @Content(examples = @ExampleObject(HttpStatuses.UNAUTHORIZED))),
+            @ApiResponse(responseCode = "403", description = HttpStatuses.FORBIDDEN,
+                    content = @Content(examples = @ExampleObject(HttpStatuses.FORBIDDEN))),
+            @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND,
+                    content = @Content(examples = @ExampleObject(HttpStatuses.NOT_FOUND)))
+    })
+    @DeleteMapping("/{eventId}")
+    public ResponseEntity<Object> delete(@PathVariable Long eventId, @Parameter(hidden = true) Principal principal) {
+        eventService.delete(eventId, principal.getName());
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    /**
      * Method for searching for the event by key words.
      *
      * @return object of {@link EventCreateDtoResponse}
@@ -146,4 +179,5 @@ public class EventController {
             Pageable pageable) {
         return ResponseEntity.status(HttpStatus.OK).body(eventService.findEventByQuery(query, pageable));
     }
+
 }
