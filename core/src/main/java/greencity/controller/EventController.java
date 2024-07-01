@@ -1,10 +1,8 @@
 package greencity.controller;
 
-import greencity.annotations.MultipartValidation;
-import greencity.annotations.ValidStringLength;
-import greencity.constant.HttpStatuses;
 import greencity.annotations.CurrentUser;
-import greencity.dto.PageableAdvancedDto;
+import greencity.annotations.MultipartValidation;
+import greencity.constant.HttpStatuses;
 import greencity.dto.PageableAdvancedDto;
 import greencity.dto.event.EventCreateDtoRequest;
 import greencity.dto.event.EventCreateDtoResponse;
@@ -20,13 +18,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import jakarta.websocket.server.PathParam;
-import jakarta.websocket.server.PathParam;
 import lombok.AllArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -36,9 +30,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Arrays;
-import java.util.List;
 import java.security.Principal;
+import java.util.List;
 
 import static greencity.constant.EventConstants.*;
 

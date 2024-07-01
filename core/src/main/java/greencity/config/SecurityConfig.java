@@ -255,7 +255,7 @@ public class SecurityConfig {
                         .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)
                         .requestMatchers(HttpMethod.DELETE,
                                 ECONEWS_COMMENTS,
-                                "/events/delete/{eventId}",
+                                "/event/{eventId}",
                                 "/events/comments/{eventCommentId}",
                                 "/econews/{econewsId}",
                                 CUSTOM_SHOPPING_LIST_ITEMS,
