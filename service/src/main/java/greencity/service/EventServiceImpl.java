@@ -2,29 +2,38 @@ package greencity.service;
 
 import greencity.client.RestClient;
 import greencity.constant.ErrorMessage;
-import greencity.constant.ErrorMessage;
+import greencity.dto.PageableAdvancedDto;
 import greencity.dto.event.*;
+import greencity.dto.filter.EventDateLocationForEventsFilterDto;
+import greencity.dto.filter.EventsFilterDto;
 import greencity.dto.user.NotificationDto;
 import greencity.dto.user.UserVO;
 import greencity.entity.*;
+import greencity.enums.EventInitiativeType;
+import greencity.enums.EventStatus;
 import greencity.enums.Role;
 import greencity.exception.exceptions.BadRequestException;
 import greencity.exception.exceptions.NotFoundException;
 import greencity.exception.exceptions.AlreadyExistException;
-import greencity.enums.Role;
-import greencity.exception.exceptions.NotFoundException;
 import greencity.exception.exceptions.UserHasNoPermissionToAccessException;
 import greencity.repository.EventRepo;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -137,6 +146,44 @@ public class EventServiceImpl implements EventService {
         eventRepo.save(event);
 
         return modelMapper.map(event, EventCreateDtoResponse.class);
+    }
+
+    @Override
+    public PageableAdvancedDto<EventCreateDtoResponse> getByFilter(EventsFilterDto filter, Pageable pageable){
+
+
+
+
+        return null;
+    }
+
+    private Specification<Event> prepareWhereConditionsFor(List<String> words) {
+        return (Root<Event> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) -> {
+            Predicate[] predicates = new Predicate[words.size()];
+            for (int i = 0; i < words.size(); i++) {
+                predicates[i] = criteriaBuilder.like(criteriaBuilder.lower(root.get("title")), "%" + words.get(i).toLowerCase() + "%");
+            }
+            return criteriaBuilder.and(predicates);
+        };
+    }
+
+    private Specification<Event> prepareWhereConditionsForFilter(EventsFilterDto filter) {
+        Boolean isUpcoming = filter.getIsUpcoming();
+        EventInitiativeType initiativeType = filter.getInitiativeType();
+        EventDateLocationForEventsFilterDto location = filter.getLocation();
+        Double rating = filter.getRating();
+        EventStatus status = filter.getStatus();
+        LocalDateTime startDate = filter.getStartDate();
+        LocalDateTime endDate = filter.getEndDate();
+
+        return (Root<Event> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) -> {
+            Predicate[] predicates = new Predicate[words.size()];
+
+            predicates[i] = criteriaBuilder.like(criteriaBuilder.lower(root.get("title")), "%" + words.get(i).toLowerCase() + "%");
+
+
+            return criteriaBuilder.and(predicates);
+        };
     }
 
     private void checkIfEventExistsOrElseThrow(EventCreateDtoRequest dto, List<Event> fetchedEvents) {

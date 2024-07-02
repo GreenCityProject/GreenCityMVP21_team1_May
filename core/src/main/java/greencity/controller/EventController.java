@@ -3,9 +3,11 @@ package greencity.controller;
 import greencity.annotations.MultipartValidation;
 import greencity.constant.HttpStatuses;
 import greencity.annotations.CurrentUser;
+import greencity.dto.PageableAdvancedDto;
 import greencity.dto.event.EventCreateDtoRequest;
 import greencity.dto.event.EventCreateDtoResponse;
 import greencity.dto.event.EventUpdateDtoRequest;
+import greencity.dto.filter.EventsFilterDto;
 import greencity.dto.user.UserVO;
 import greencity.service.EventService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,6 +20,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -147,4 +150,27 @@ public class EventController {
         eventService.delete(eventId, principal.getName());
         return ResponseEntity.status(HttpStatus.OK).build();
     }
+
+    /**
+     * Method for getting filtered events page.
+     *
+     * @param eventId the ID of the event to be deleted.
+     * @param principal is automatically inserted via SecurityContextHolder, in this context - the user's name.
+     * @return ResponseEntity<Object> this returns server's response which denotes the status of the operation.
+     */
+    @Operation(summary = "getByFilter")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+            @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST),
+            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
+            @ApiResponse(responseCode = "403", description = HttpStatuses.FORBIDDEN),
+            @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
+    })
+    @GetMapping("/filter")
+    public ResponseEntity<PageableAdvancedDto<EventCreateDtoResponse>> getByFilter(@RequestBody EventsFilterDto filter,
+                                                                                   Pageable pageable) {
+        eventService.getByFilter(filter, pageable);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
 }
