@@ -70,7 +70,6 @@ public class EventController {
         return ResponseEntity.status(HttpStatus.CREATED).body(eventService.create(dto, images, principal));
     }
 
-
     /**
      * Method for getting all events.
      *
@@ -167,10 +166,9 @@ public class EventController {
             @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
     })
     @GetMapping("/filter")
-    public ResponseEntity<PageableAdvancedDto<EventCreateDtoResponse>> getByFilter(@RequestBody EventsFilterDto filter,
-                                                                                   Pageable pageable) {
-        eventService.getByFilter(filter, pageable);
-        return ResponseEntity.status(HttpStatus.OK).build();
+    public ResponseEntity<PageableAdvancedDto<EventCreateDtoResponse>> getByFilter(EventsFilterDto filter,
+                                                                                   @Parameter(hidden = true) Pageable pageable) {
+        return ResponseEntity.status(HttpStatus.OK).body(eventService.getByFilter(filter, pageable));
     }
 
 }

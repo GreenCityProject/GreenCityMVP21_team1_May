@@ -3,32 +3,29 @@ package greencity.service;
 import greencity.client.RestClient;
 import greencity.constant.ErrorMessage;
 import greencity.dto.PageableAdvancedDto;
-import greencity.dto.event.*;
-import greencity.dto.filter.EventDateLocationForEventsFilterDto;
+import greencity.dto.event.EventCreateDtoRequest;
+import greencity.dto.event.EventCreateDtoResponse;
+import greencity.dto.event.EventDateLocationDtoRequest;
+import greencity.dto.event.EventUpdateDtoRequest;
 import greencity.dto.filter.EventsFilterDto;
 import greencity.dto.user.NotificationDto;
 import greencity.dto.user.UserVO;
 import greencity.entity.*;
-import greencity.enums.EventInitiativeType;
-import greencity.enums.EventStatus;
 import greencity.enums.Role;
+import greencity.exception.exceptions.AlreadyExistException;
 import greencity.exception.exceptions.BadRequestException;
 import greencity.exception.exceptions.NotFoundException;
-import greencity.exception.exceptions.AlreadyExistException;
 import greencity.exception.exceptions.UserHasNoPermissionToAccessException;
 import greencity.repository.EventRepo;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.data.jpa.domain.Specification;
 
 import java.io.File;
 import java.io.IOException;
@@ -94,7 +91,7 @@ public class EventServiceImpl implements EventService {
         event.setDates(eventDateLocationList);
         event = eventRepo.save(event);
 
-        //restClient.sendNotificationToUser(prepareNotificationFromEvent(event), organiser.getEmail());
+        restClient.sendNotificationToUser(prepareNotificationFromEvent(event), organiser.getEmail());
 
         return modelMapper.map(event, EventCreateDtoResponse.class);
     }
@@ -150,39 +147,74 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public PageableAdvancedDto<EventCreateDtoResponse> getByFilter(EventsFilterDto filter, Pageable pageable){
+        var events = eventRepo.findAll(prepareWhereConditionsForFilter(filter)).stream()
+                .map(event -> modelMapper.map(event, EventCreateDtoResponse.class))
+                .toList();
 
+        long offset = (long) pageable.getPageNumber() * pageable.getPageSize();
+        List<EventCreateDtoResponse> page = events.stream()
+                .skip(offset)
+                .limit(pageable.getPageSize())
+                .toList();
+        long totalElements = events.size();
+        int currentPage = pageable.getPageNumber();// from 0 to last
+        int totalPages = (int) Math.ceil((double) (events.size()) / pageable.getPageSize());//amount of pages
+        int number = pageable.getPageNumber();//same as currentPage
+        boolean hasPrevious = number != 0;
+        boolean hasNext = number < totalPages - 1;
+        boolean first = number == 0;
+        boolean last = number == totalPages - 1;
 
-
-
-        return null;
-    }
-
-    private Specification<Event> prepareWhereConditionsFor(List<String> words) {
-        return (Root<Event> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) -> {
-            Predicate[] predicates = new Predicate[words.size()];
-            for (int i = 0; i < words.size(); i++) {
-                predicates[i] = criteriaBuilder.like(criteriaBuilder.lower(root.get("title")), "%" + words.get(i).toLowerCase() + "%");
-            }
-            return criteriaBuilder.and(predicates);
-        };
+        return new PageableAdvancedDto<>(
+                page,
+                totalElements,
+                currentPage,
+                totalPages,
+                number,
+                hasPrevious,
+                hasNext,
+                first,
+                last);
     }
 
     private Specification<Event> prepareWhereConditionsForFilter(EventsFilterDto filter) {
-        Boolean isUpcoming = filter.getIsUpcoming();
-        EventInitiativeType initiativeType = filter.getInitiativeType();
-        EventDateLocationForEventsFilterDto location = filter.getLocation();
-        Double rating = filter.getRating();
-        EventStatus status = filter.getStatus();
-        LocalDateTime startDate = filter.getStartDate();
-        LocalDateTime endDate = filter.getEndDate();
+        return (Root<Event> root, CriteriaQuery<?> query, CriteriaBuilder cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
 
-        return (Root<Event> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) -> {
-            Predicate[] predicates = new Predicate[words.size()];
+            Join<Event, EventDateLocation> eventDateLocationJoin = root.join("dates", JoinType.LEFT);
+            Join<EventDateLocation, Address> addressJoin = eventDateLocationJoin.join("address", JoinType.LEFT);
 
-            predicates[i] = criteriaBuilder.like(criteriaBuilder.lower(root.get("title")), "%" + words.get(i).toLowerCase() + "%");
+            if (Boolean.TRUE.equals(filter.getIsUpcoming())) predicates.add(cb.
+                    greaterThanOrEqualTo(eventDateLocationJoin.get("startTime"), LocalDateTime.now()));
+            if (Boolean.FALSE.equals(filter.getIsUpcoming())) predicates.add(
+                    cb.lessThan(eventDateLocationJoin.get("startTime"), LocalDateTime.now()));
 
+            if (Boolean.TRUE.equals(filter.getIsOnline())) predicates.add(
+                    cb.notLike(eventDateLocationJoin.get("onlineLink"), ""));
+            if (Boolean.FALSE.equals(filter.getIsOnline())) predicates.add(
+                    cb.equal(eventDateLocationJoin.get("onlineLink"), ""));
 
-            return criteriaBuilder.and(predicates);
+            if (filter.getStartDate() != null) predicates.add(
+                    cb.greaterThanOrEqualTo(eventDateLocationJoin.get("startTime"), filter.getStartDate()));
+
+            if (filter.getEndDate() != null) predicates.add(
+                    cb.lessThanOrEqualTo(eventDateLocationJoin.get("endTime"), filter.getEndDate()));
+
+            if (filter.getCountry() != null) {
+                Predicate countryPredicate = cb.or(
+                        cb.equal(cb.lower(addressJoin.get("countryEn")), filter.getCountry().toLowerCase()),
+                        cb.equal(cb.lower(addressJoin.get("countryUa")), filter.getCountry().toLowerCase()));
+                predicates.add(countryPredicate);
+            }
+
+            if (filter.getCity() != null) {
+                Predicate cityPredicate = cb.or(
+                        cb.equal(cb.lower(addressJoin.get("cityEn")), filter.getCity().toLowerCase()),
+                        cb.equal(cb.lower(addressJoin.get("cityUa")), filter.getCity().toLowerCase()));
+                predicates.add(cityPredicate);
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
 
