@@ -163,6 +163,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,
                                 "/event",
                                 "/event/{id}",
+                                "/event/filter",
                                 "/achievements",
                                 CUSTOM_SHOPPING_LIST_ITEMS,
                                 CUSTOM_SHOPPING_LIST,

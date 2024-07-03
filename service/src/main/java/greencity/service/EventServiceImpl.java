@@ -194,11 +194,11 @@ public class EventServiceImpl implements EventService {
             if (Boolean.FALSE.equals(filter.getIsOnline())) predicates.add(
                     cb.equal(eventDateLocationJoin.get("onlineLink"), ""));
 
-            if (filter.getStartDate() != null) predicates.add(
-                    cb.greaterThanOrEqualTo(eventDateLocationJoin.get("startTime"), filter.getStartDate()));
+            if (filter.getStartDateFrom() != null) predicates.add(
+                    cb.greaterThanOrEqualTo(eventDateLocationJoin.get("startTime"), filter.getStartDateFrom()));
 
-            if (filter.getEndDate() != null) predicates.add(
-                    cb.lessThanOrEqualTo(eventDateLocationJoin.get("endTime"), filter.getEndDate()));
+            if (filter.getEndDateFrom() != null) predicates.add(
+                    cb.lessThanOrEqualTo(eventDateLocationJoin.get("endTime"), filter.getEndDateFrom()));
 
             if (filter.getCountry() != null) {
                 Predicate countryPredicate = cb.or(
