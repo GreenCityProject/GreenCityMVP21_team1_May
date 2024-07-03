@@ -146,9 +146,7 @@ public class EventServiceImpl implements EventService {
     @Transactional
     public PageableAdvancedDto<EventCreateDtoResponse> findEventByQuery(String query, Pageable pageable) {
         List<String> words = Arrays.stream(query.split(" ")).toList();
-        List<Event> events = eventRepo.findAll(prepareWhereConditions(words));
-
-        var l1 = events.stream().map(Event::getId).toList().toString();
+        List<Event> events = eventRepo.findAll(prepareWhereConditionsForFindEventByQuery(words));
 
         List<EventCreateDtoResponse> sortedEvents = events.stream()
                 .sorted((e1, e2) -> {
@@ -162,10 +160,6 @@ public class EventServiceImpl implements EventService {
                 })
                 .map(event -> modelMapper.map(event, EventCreateDtoResponse.class))
                 .toList();
-
-        log.error(l1);
-        log.error(sortedEvents.stream().map(EventCreateDtoResponse::getId).toList().toString());
-
 
         long offset = (long) pageable.getPageNumber() * pageable.getPageSize();
         List<EventCreateDtoResponse> page = sortedEvents.stream()
@@ -202,7 +196,7 @@ public class EventServiceImpl implements EventService {
         }
         return count;
     }
-    private Specification<Event> prepareWhereConditions(List<String> words) {
+    private Specification<Event> prepareWhereConditionsForFindEventByQuery(List<String> words) {
         return (Root<Event> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) -> {
             Predicate[] predicates = new Predicate[words.size()];
             for (int i = 0; i < words.size(); i++) {
