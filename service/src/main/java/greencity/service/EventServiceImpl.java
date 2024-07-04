@@ -196,6 +196,7 @@ public class EventServiceImpl implements EventService {
         }
         return count;
     }
+
     private Specification<Event> prepareWhereConditionsForFindEventByQuery(List<String> words) {
         return (Root<Event> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) -> {
             Predicate[] predicates = new Predicate[words.size()];

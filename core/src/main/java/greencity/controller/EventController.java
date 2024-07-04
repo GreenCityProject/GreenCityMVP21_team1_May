@@ -161,12 +161,13 @@ public class EventController {
     @Operation(summary = "Search the event by key words")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+            @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST),
             @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
             @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
     })
     @GetMapping("/search")
     public ResponseEntity<PageableAdvancedDto<EventCreateDtoResponse>> getEventByQuery(
-            @Pattern(regexp = "^[a-zA-Zа-яА-ЯіІїЇєЄґҐ .'-]{1,30}$",
+            @Pattern(regexp = "^(?!.*[ЫыЪъЁёЭэ])[a-zA-Zа-яА-ЯіІїЇєЄґҐ .'-]{1,30}$",
                     message = "Query allows only 1-30 symbols: ENG and UKR alphabetic characters, a dot, a space, apostrophe and hyphen")
             @PathParam("query") String query,
             Pageable pageable) {
