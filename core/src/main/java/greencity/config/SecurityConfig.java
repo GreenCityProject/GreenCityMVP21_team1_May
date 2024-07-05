@@ -163,6 +163,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,
                                 "/event",
                                 "/event/{id}",
+                                "/event/search",
                                 "/achievements",
                                 CUSTOM_SHOPPING_LIST_ITEMS,
                                 CUSTOM_SHOPPING_LIST,
@@ -224,7 +225,7 @@ public class SecurityConfig {
                                 "/habit/custom",
                                 "/custom/shopping-list-items/{userId}/{habitId}/custom-shopping-list-items",
                                 "/event/get/{id}",
-                                "/event/create",
+                                "/event",
                                 "/notifications/**")
                         .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)
                         .requestMatchers(HttpMethod.PUT,
@@ -254,7 +255,7 @@ public class SecurityConfig {
                         .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)
                         .requestMatchers(HttpMethod.DELETE,
                                 ECONEWS_COMMENTS,
-                                "/events/delete/{eventId}",
+                                "/event/{eventId}",
                                 "/events/comments/{eventCommentId}",
                                 "/econews/{econewsId}",
                                 CUSTOM_SHOPPING_LIST_ITEMS,

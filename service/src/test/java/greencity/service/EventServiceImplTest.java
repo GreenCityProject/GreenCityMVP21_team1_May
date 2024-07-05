@@ -1,6 +1,8 @@
 package greencity.service;
 
 import greencity.client.RestClient;
+import greencity.dto.PageableAdvancedDto;
+import greencity.dto.event.EventCreateDtoResponse;
 import greencity.dto.user.NotificationDto;
 import greencity.dto.user.UserVO;
 import greencity.entity.Event;
@@ -11,13 +13,18 @@ import greencity.repository.EventRepo;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Collections;
 import java.util.Optional;
 
 import static greencity.ModelUtils.*;
@@ -130,5 +137,38 @@ class EventServiceImplTest {
         assertDoesNotThrow(() -> {
             eventService.delete(eventId, email);
         });
+    }
+
+    @Test
+    void findEventByQuery_validParams() {
+        String eventTitle = "My genius event";
+        var expectedResult = getPageableAdvancedDtoForEventCreateDtoResponse(
+                1, 1, 1, 0, 1, 0, false, false, true, true);
+        var fatchedEvent = getEvent(1, 1);
+        expectedResult.getPage().getFirst().setTitle(eventTitle);
+        fatchedEvent.setTitle(eventTitle);
+        String queryRequest = "gEnIuS";
+        Pageable pageableRequest = PageRequest.of(expectedResult.getNumber(), 10);
+
+        when(eventRepo.findAll(ArgumentMatchers.<Specification<Event>>any())).thenReturn(Collections.singletonList(fatchedEvent));
+
+        var actualResult = eventService.findEventByQuery(queryRequest, pageableRequest);
+
+        assertEquals(expectedResult, actualResult);
+        verify(eventRepo).findAll(ArgumentMatchers.<Specification<Event>>any());
+    }
+
+    @Test
+    void findEventByQuery_validQuery_noEventsFound() {
+        var expectedResult = new PageableAdvancedDto<EventCreateDtoResponse>(
+                Collections.emptyList(), 0, 0, 0, 0, false, false, true, false);
+        Pageable pageableRequest = PageRequest.of(expectedResult.getNumber(), 10);
+
+        when(eventRepo.findAll(ArgumentMatchers.<Specification<Event>>any())).thenReturn(Collections.emptyList());
+
+        var actualResult = eventService.findEventByQuery("queryRequest", pageableRequest);
+
+        assertEquals(expectedResult, actualResult);
+        verify(eventRepo).findAll(ArgumentMatchers.<Specification<Event>>any());
     }
 }

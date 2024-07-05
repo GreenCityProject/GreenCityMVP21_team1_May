@@ -2,40 +2,43 @@ package greencity.service;
 
 import greencity.client.RestClient;
 import greencity.constant.ErrorMessage;
-import greencity.constant.ErrorMessage;
-import greencity.dto.event.*;
+import greencity.dto.PageableAdvancedDto;
+import greencity.dto.event.EventCreateDtoRequest;
+import greencity.dto.event.EventCreateDtoResponse;
+import greencity.dto.event.EventDateLocationDtoRequest;
+import greencity.dto.event.EventUpdateDtoRequest;
 import greencity.dto.user.NotificationDto;
 import greencity.dto.user.UserVO;
 import greencity.entity.*;
 import greencity.enums.Role;
-import greencity.exception.exceptions.BadRequestException;
-import greencity.exception.exceptions.NotFoundException;
 import greencity.exception.exceptions.AlreadyExistException;
-import greencity.enums.Role;
+import greencity.exception.exceptions.BadRequestException;
 import greencity.exception.exceptions.NotFoundException;
 import greencity.exception.exceptions.UserHasNoPermissionToAccessException;
 import greencity.repository.EventRepo;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class EventServiceImpl implements EventService {
-
     private final EventRepo eventRepo;
     private final UserService userService;
     private final RestClient restClient;
@@ -85,7 +88,7 @@ public class EventServiceImpl implements EventService {
         event.setDates(eventDateLocationList);
         event = eventRepo.save(event);
 
-        //restClient.sendNotificationToUser(prepareNotificationFromEvent(event), organiser.getEmail());
+        restClient.sendNotificationToUser(prepareNotificationFromEvent(event), organiser.getEmail());
 
         return modelMapper.map(event, EventCreateDtoResponse.class);
     }
@@ -137,6 +140,71 @@ public class EventServiceImpl implements EventService {
         eventRepo.save(event);
 
         return modelMapper.map(event, EventCreateDtoResponse.class);
+    }
+
+    @Override
+    @Transactional
+    public PageableAdvancedDto<EventCreateDtoResponse> findEventByQuery(String query, Pageable pageable) {
+        List<String> words = Arrays.stream(query.split(" ")).toList();
+        List<Event> events = eventRepo.findAll(prepareWhereConditionsForFindEventByQuery(words));
+
+        List<EventCreateDtoResponse> sortedEvents = events.stream()
+                .sorted((e1, e2) -> {
+                    long count1 = words.stream()
+                            .mapToLong(word -> countOccurrences(e1.getTitle().toLowerCase(), word.toLowerCase()))
+                            .sum();
+                    long count2 = words.stream()
+                            .mapToLong(word -> countOccurrences(e2.getTitle().toLowerCase(), word.toLowerCase()))
+                            .sum();
+                    return Long.compare(count2, count1); // descending order
+                })
+                .map(event -> modelMapper.map(event, EventCreateDtoResponse.class))
+                .toList();
+
+        long offset = (long) pageable.getPageNumber() * pageable.getPageSize();
+        List<EventCreateDtoResponse> page = sortedEvents.stream()
+                .skip(offset)
+                .limit(pageable.getPageSize())
+                .toList();
+        long totalElements = events.size();
+        int currentPage = pageable.getPageNumber();// from 0 to last
+        int totalPages = (int) Math.ceil((double) (events.size()) / pageable.getPageSize());//amount of pages
+        int number = pageable.getPageNumber();//same as currentPage
+        boolean hasPrevious = number != 0;
+        boolean hasNext = number < totalPages - 1;
+        boolean first = number == 0;
+        boolean last = number == totalPages - 1;
+
+        return new PageableAdvancedDto<>(
+                page,
+                totalElements,
+                currentPage,
+                totalPages,
+                number,
+                hasPrevious,
+                hasNext,
+                first,
+                last);
+    }
+
+    private long countOccurrences(String title, String word) {
+        int count = 0;
+        int idx = 0;
+        while ((idx = title.indexOf(word, idx)) != -1) {
+            count++;
+            idx += word.length();
+        }
+        return count;
+    }
+
+    private Specification<Event> prepareWhereConditionsForFindEventByQuery(List<String> words) {
+        return (Root<Event> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) -> {
+            Predicate[] predicates = new Predicate[words.size()];
+            for (int i = 0; i < words.size(); i++) {
+                predicates[i] = criteriaBuilder.like(criteriaBuilder.lower(root.get("title")), "%" + words.get(i).toLowerCase() + "%");
+            }
+            return criteriaBuilder.and(predicates);
+        };
     }
 
     private void checkIfEventExistsOrElseThrow(EventCreateDtoRequest dto, List<Event> fetchedEvents) {

@@ -3,6 +3,7 @@ package greencity;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import greencity.constant.AppConstant;
+import greencity.dto.PageableAdvancedDto;
 import greencity.dto.PageableDto;
 import greencity.dto.econews.AddEcoNewsDtoRequest;
 import greencity.dto.econews.AddEcoNewsDtoResponse;
@@ -530,5 +531,11 @@ public class ModelUtils {
                 .build();
 
         return mainDto;
+    }
+
+    public static PageableAdvancedDto<EventCreateDtoResponse> getPageableAdvancedDtoForEventCreateDtoResponse(int datesNumber, int imagesNumber) {
+        return new PageableAdvancedDto<>(Collections.singletonList(getEventCreateDtoResponse(datesNumber,imagesNumber)),
+                9, 1, 2, 1,
+                true, false, false, true);
     }
 }

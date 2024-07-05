@@ -1,8 +1,9 @@
 package greencity.controller;
 
+import greencity.annotations.CurrentUser;
 import greencity.annotations.MultipartValidation;
 import greencity.constant.HttpStatuses;
-import greencity.annotations.CurrentUser;
+import greencity.dto.PageableAdvancedDto;
 import greencity.dto.event.EventCreateDtoRequest;
 import greencity.dto.event.EventCreateDtoResponse;
 import greencity.dto.event.EventUpdateDtoRequest;
@@ -16,8 +17,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import jakarta.websocket.server.PathParam;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -26,8 +30,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
 import java.security.Principal;
+import java.util.List;
 
 import static greencity.constant.EventConstants.*;
 
@@ -147,4 +151,27 @@ public class EventController {
         eventService.delete(eventId, principal.getName());
         return ResponseEntity.status(HttpStatus.OK).build();
     }
+
+    /**
+     * Method for searching for the event by key words.
+     *
+     * @return object of {@link EventCreateDtoResponse}
+     * @author Mashkin Andriy
+     */
+    @Operation(summary = "Search the event by key words")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+            @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST),
+            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
+            @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
+    })
+    @GetMapping("/search")
+    public ResponseEntity<PageableAdvancedDto<EventCreateDtoResponse>> getEventByQuery(
+            @Pattern(regexp = "^(?!.*[ЫыЪъЁёЭэ])[a-zA-Zа-яА-ЯіІїЇєЄґҐ .'-]{1,30}$",
+                    message = "Query allows only 1-30 symbols: ENG and UKR alphabetic characters, a dot, a space, apostrophe and hyphen")
+            @PathParam("query") String query,
+            Pageable pageable) {
+        return ResponseEntity.status(HttpStatus.OK).body(eventService.findEventByQuery(query, pageable));
+    }
+
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import greencity.GreenCityApplication;
+import greencity.ModelUtils;
 import greencity.exception.handler.CustomExceptionHandler;
 import greencity.service.EventService;
 import greencity.service.UserService;
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Pageable;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
@@ -23,16 +25,12 @@ import java.text.SimpleDateFormat;
 import java.util.Locale;
 
 import static greencity.ModelUtils.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 import static org.springframework.http.MediaType.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WithMockUser(username = "username")
 @WebMvcTest(EventController.class)
@@ -80,7 +78,7 @@ class EventControllerTest {
 
         when(eventService.create(any(), any(), any())).thenReturn(serviceResponse);
 
-        mockMvc.perform(multipart(EVENT_LINK + "/create")
+        mockMvc.perform(multipart(EVENT_LINK )
                         .file(dtoMultipartFile)
                         .file(firstMultipartFile)
                         .file(secondMultipartFile)
@@ -106,5 +104,42 @@ class EventControllerTest {
                 .andExpect(status().isOk());
 
         verify(eventService).delete(eq(eventId), any());
+    }
+
+    @Test
+    void getEventByQuery_validRequest_200ok() throws Exception {
+        var serviceResponse = ModelUtils.getPageableAdvancedDtoForEventCreateDtoResponse(1, 1);
+        when(eventService.findEventByQuery(anyString(), any(Pageable.class))).thenReturn(serviceResponse);
+
+        mockMvc.perform(get(EVENT_LINK + "/search")
+                        .param("query", "Мій Український Event-'моЄ'..."))
+                .andExpect(status().isOk())
+                .andExpect(content().json(writer.writeValueAsString(serviceResponse)));
+
+        verify(eventService).findEventByQuery(anyString(), any(Pageable.class));
+    }
+
+    @Test
+    void getEventByQuery_forbiddenQuerySymbols_400BadRequest() throws Exception {
+        var message = "Query allows only 1-30 symbols: ENG and UKR alphabetic characters, a dot, a space, apostrophe and hyphen";
+
+        mockMvc.perform(get(EVENT_LINK + "/search")
+                        .param("query", "ЫыЪъЁёЭэ123"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(message));
+
+        verify(eventService, never()).findEventByQuery(anyString(), any(Pageable.class));
+    }
+
+    @Test
+    void getEventByQuery_tooMuchSymbols_400BadRequest() throws Exception {
+        var message = "Query allows only 1-30 symbols: ENG and UKR alphabetic characters, a dot, a space, apostrophe and hyphen";
+
+        mockMvc.perform(get(EVENT_LINK + "/search")
+                        .param("query", "моє задовге речення на 33 символа"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(message));
+
+        verify(eventService, never()).findEventByQuery(anyString(), any(Pageable.class));
     }
 }

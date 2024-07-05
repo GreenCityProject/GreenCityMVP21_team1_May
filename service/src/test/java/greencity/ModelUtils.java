@@ -970,4 +970,27 @@ public class ModelUtils {
         return mainDto;
     }
 
+    public static PageableAdvancedDto<EventCreateDtoResponse> getPageableAdvancedDtoForEventCreateDtoResponse(
+            int datesNumber,
+            int imagesNumber,
+            long totalElements,
+            int currentPage,
+            int totalPages,
+            int number,
+            boolean hasPrevious,
+            boolean hasNext,
+            boolean first,
+            boolean last) {
+        return new PageableAdvancedDto<>(
+                Collections.singletonList(getEventCreateDtoResponse(datesNumber, imagesNumber)),
+                totalElements,
+                currentPage,
+                totalPages,
+                number,
+                hasPrevious,
+                hasNext,
+                first,
+                last);
+    }
+
 }
