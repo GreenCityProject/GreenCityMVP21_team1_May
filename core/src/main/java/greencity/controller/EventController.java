@@ -151,11 +151,11 @@ public class EventController {
     }
 
     /**
-     * Method for getting filtered events page.
+     * <b>Method for getting filtered events page.</b>
      *
-     * @param eventId the ID of the event to be deleted.
-     * @param principal is automatically inserted via SecurityContextHolder, in this context - the user's name.
-     * @return ResponseEntity<Object> this returns server's response which denotes the status of the operation.
+     * @param filter list of nullable params to get filtered on.
+     * @param pageable is automatically mapped from path params (size, page, sort). Invalid input causes default values: size=20, page=0, sort=ASC
+     * @return PageableAdvancedDto<EventCreateDtoResponse> is a custom page like wrapper for list of EventCreateDtoResponse entities.
      */
     @Operation(summary = "getByFilter")
     @ApiResponses(value = {

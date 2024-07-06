@@ -970,4 +970,26 @@ public class ModelUtils {
         return mainDto;
     }
 
+    public static PageableAdvancedDto<EventCreateDtoResponse> getPageableAdvancedDtoForEventCreateDtoResponse(
+            List<EventCreateDtoResponse> events,
+            long totalElements,
+            int currentPage,
+            int totalPages,
+            int number,
+            boolean hasPrevious,
+            boolean hasNext,
+            boolean first,
+            boolean last) {
+        return new PageableAdvancedDto<>(
+                events,
+                totalElements,
+                currentPage,
+                totalPages,
+                number,
+                hasPrevious,
+                hasNext,
+                first,
+                last);
+    }
+
 }
