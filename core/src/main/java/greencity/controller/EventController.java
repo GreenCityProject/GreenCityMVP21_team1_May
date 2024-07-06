@@ -3,9 +3,11 @@ package greencity.controller;
 import greencity.annotations.MultipartValidation;
 import greencity.constant.HttpStatuses;
 import greencity.annotations.CurrentUser;
+import greencity.dto.PageableAdvancedDto;
 import greencity.dto.event.EventCreateDtoRequest;
 import greencity.dto.event.EventCreateDtoResponse;
 import greencity.dto.event.EventUpdateDtoRequest;
+import greencity.dto.filter.EventsFilterDto;
 import greencity.dto.user.UserVO;
 import greencity.service.EventService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,6 +20,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -66,7 +69,6 @@ public class EventController {
             @AuthenticationPrincipal String principal) {
         return ResponseEntity.status(HttpStatus.CREATED).body(eventService.create(dto, images, principal));
     }
-
 
     /**
      * Method for getting all events.
@@ -147,4 +149,25 @@ public class EventController {
         eventService.delete(eventId, principal.getName());
         return ResponseEntity.status(HttpStatus.OK).build();
     }
+
+    /**
+     * <b>Method for getting filtered events page.</b>
+     *
+     * @param filter list of nullable params to get filtered on.
+     * @param pageable is automatically mapped from path params (size, page, sort). Invalid input causes default values: size=20, page=0, sort=ASC
+     * @return PageableAdvancedDto<EventCreateDtoResponse> is a custom page like wrapper for list of EventCreateDtoResponse entities.
+     */
+    @Operation(summary = "getByFilter")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+            @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST,content = @Content),
+            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED,content = @Content),
+            @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND,content = @Content)
+    })
+    @GetMapping("/filter")
+    public ResponseEntity<PageableAdvancedDto<EventCreateDtoResponse>> getByFilter(EventsFilterDto filter,
+                                                                                   @Parameter(hidden = true) Pageable pageable) {
+        return ResponseEntity.status(HttpStatus.OK).body(eventService.getByFilter(filter, pageable));
+    }
+
 }

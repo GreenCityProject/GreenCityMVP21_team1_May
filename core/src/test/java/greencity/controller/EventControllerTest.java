@@ -4,16 +4,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import greencity.GreenCityApplication;
+import greencity.dto.filter.EventsFilterDto;
 import greencity.exception.handler.CustomExceptionHandler;
 import greencity.service.EventService;
 import greencity.service.UserService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Pageable;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
@@ -29,8 +32,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -106,5 +108,22 @@ class EventControllerTest {
                 .andExpect(status().isOk());
 
         verify(eventService).delete(eq(eventId), any());
+    }
+
+    @Test
+    void getByFilter_validFilter_200ok() throws Exception {
+        var serviceResponse = getPageableAdvancedDtoForEventCreateDtoResponse(
+                1, 1, 1, 1, 1, 1, false, false, true, false);
+        var filter = new EventsFilterDto();
+        filter.setCity("BanjoCity");
+
+        when(eventService.getByFilter(any(EventsFilterDto.class), ArgumentMatchers.any(Pageable.class))).thenReturn(serviceResponse);
+
+        mockMvc.perform(get(EVENT_LINK + "/filter")
+                        .param("city", "BanjoCity"))
+                .andExpect(status().isOk())
+                .andExpect(content().json(writer.writeValueAsString(serviceResponse)));
+
+        verify(eventService).getByFilter(eq(filter), any(Pageable.class));
     }
 }
